@@ -22,11 +22,26 @@ type supportedOperation struct {
 }
 
 const (
-	customOpCommand = "custom"
+	customOpCommand        = "custom"
+	installConsulCommand   = "consul_install"
+	installBookInfoCommand = "install_book_info"
+	installHTTPBinCommand  = "install_http_bin"
 )
 
 var supportedOps = map[string]supportedOperation{
 	customOpCommand: {
 		name: "Custom YAML",
+	},
+	installConsulCommand: {
+		name:         "Install the latest version of Consul with sidecar injector",
+		templateName: "consul.yaml",
+	},
+	installBookInfoCommand: {
+		name:         "Install the canonical Istio Book Info Application",
+		templateName: "bookinfo.yaml",
+	},
+	installHTTPBinCommand: {
+		name:         "Install HTTP bin Application",
+		templateName: "httpbin-consul.yaml",
 	},
 }
