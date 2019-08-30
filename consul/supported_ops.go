@@ -43,12 +43,12 @@ var supportedOps = map[string]supportedOperation{
 		opType:       meshes.OpCategory_INSTALL,
 	},
 	installBookInfoCommand: {
-		name:         "Canonical Istio Book Info Application",
+		name:         "Istio Book Info Application",
 		templateName: "bookinfo.yaml",
 		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
 	},
 	installHTTPBinCommand: {
-		name:         "HTTP bin Application",
+		name:         "HTTPbin Application",
 		templateName: "httpbin-consul.yaml",
 		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
 	},
