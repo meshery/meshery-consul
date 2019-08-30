@@ -314,11 +314,11 @@ func (iClient *ConsulClient) ApplyOperation(ctx context.Context, arReq *meshes.A
 
 	op, ok := supportedOps[arReq.OpName]
 	if !ok {
-		return nil, fmt.Errorf("error: %s is not a valid operation name", arReq.OpName)
+		return nil, fmt.Errorf("operation id: %s, error: %s is not a valid operation name", arReq.OperationId, arReq.OpName)
 	}
 
 	if arReq.OpName == customOpCommand && arReq.CustomBody == "" {
-		return nil, fmt.Errorf("error: yaml body is empty for %s operation", arReq.OpName)
+		return nil, fmt.Errorf("operation id: %s, error: yaml body is empty for %s operation", arReq.OperationId, arReq.OpName)
 	}
 
 	var yamlFileContents string
@@ -357,9 +357,10 @@ func (iClient *ConsulClient) ApplyOperation(ctx context.Context, arReq *meshes.A
 
 			if err := iClient.applyConfigChange(ctx, yamlFileContents, arReq.Namespace, arReq.DeleteOp, isCustomOp); err != nil {
 				iClient.eventChan <- &meshes.EventsResponse{
-					EventType: meshes.EventType_ERROR,
-					Summary:   fmt.Sprintf("Error while %s %s app", opName1, appName),
-					Details:   err.Error(),
+					OperationId: arReq.OperationId,
+					EventType:   meshes.EventType_ERROR,
+					Summary:     fmt.Sprintf("Error while %s %s app", opName1, appName),
+					Details:     err.Error(),
 				}
 				return
 			}
@@ -373,9 +374,10 @@ func (iClient *ConsulClient) ApplyOperation(ctx context.Context, arReq *meshes.A
 				ports, err = iClient.getSVCPort(ctx, svcName, arReq.Namespace)
 				if err != nil {
 					iClient.eventChan <- &meshes.EventsResponse{
-						EventType: meshes.EventType_WARN,
-						Summary:   fmt.Sprintf("%s app is deployed but unable to retrieve the port info for the service at the moment", appName),
-						Details:   err.Error(),
+						OperationId: arReq.OperationId,
+						EventType:   meshes.EventType_WARN,
+						Summary:     fmt.Sprintf("%s app is deployed but unable to retrieve the port info for the service at the moment", appName),
+						Details:     err.Error(),
 					}
 					return
 				}
@@ -389,13 +391,16 @@ func (iClient *ConsulClient) ApplyOperation(ctx context.Context, arReq *meshes.A
 			msg := fmt.Sprintf("%s app is now %s. %s", appName, opName, portMsg)
 
 			iClient.eventChan <- &meshes.EventsResponse{
-				EventType: meshes.EventType_INFO,
-				Summary:   fmt.Sprintf("%s %s successfully", appName, opName),
-				Details:   msg,
+				OperationId: arReq.OperationId,
+				EventType:   meshes.EventType_INFO,
+				Summary:     fmt.Sprintf("%s %s successfully", appName, opName),
+				Details:     msg,
 			}
 			return
 		}()
-		return &meshes.ApplyRuleResponse{}, nil
+		return &meshes.ApplyRuleResponse{
+			OperationId: arReq.OperationId,
+		}, nil
 	// case installConsulCommand:
 	// 	yamlFileContents = op.templateName
 	// 	fallthrough
@@ -410,14 +415,23 @@ func (iClient *ConsulClient) ApplyOperation(ctx context.Context, arReq *meshes.A
 		return nil, err
 	}
 
-	return &meshes.ApplyRuleResponse{}, nil
+	return &meshes.ApplyRuleResponse{
+		OperationId: arReq.OperationId,
+	}, nil
 }
 
 // SupportedOperations - returns a list of supported operations on the mesh
 func (iClient *ConsulClient) SupportedOperations(context.Context, *meshes.SupportedOperationsRequest) (*meshes.SupportedOperationsResponse, error) {
-	result := map[string]string{}
-	for key, op := range supportedOps {
-		result[key] = op.name
+	supportedOpsCount := len(supportedOps)
+	result := make([]*meshes.SupportedOperation, supportedOpsCount)
+	i := 0
+	for k, sp := range supportedOps {
+		result[i] = &meshes.SupportedOperation{
+			Key:      k,
+			Value:    sp.name,
+			Category: sp.opType,
+		}
+		i++
 	}
 	return &meshes.SupportedOperationsResponse{
 		Ops: result,

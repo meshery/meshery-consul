@@ -14,11 +14,15 @@
 
 package consul
 
+import "github.com/layer5io/meshery-consul/meshes"
+
 type supportedOperation struct {
 	// a friendly name
 	name string
 	// the template file name
 	templateName string
+
+	opType meshes.OpCategory
 }
 
 const (
@@ -30,18 +34,22 @@ const (
 
 var supportedOps = map[string]supportedOperation{
 	customOpCommand: {
-		name: "Custom YAML",
+		name:   "Custom YAML",
+		opType: meshes.OpCategory_CUSTOM,
 	},
 	installConsulCommand: {
-		name:         "Install the latest version of Consul with sidecar injector",
+		name:         "Latest version of Consul with sidecar injector",
 		templateName: "consul.yaml",
+		opType:       meshes.OpCategory_INSTALL,
 	},
 	installBookInfoCommand: {
-		name:         "Install the canonical Istio Book Info Application",
+		name:         "Istio Book Info Application",
 		templateName: "bookinfo.yaml",
+		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
 	},
 	installHTTPBinCommand: {
-		name:         "Install HTTP bin Application",
+		name:         "HTTPbin Application",
 		templateName: "httpbin-consul.yaml",
+		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
 	},
 }
