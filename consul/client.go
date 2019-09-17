@@ -20,6 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	//a blank import should be only in a main or test package, or have a comment justifying it
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
