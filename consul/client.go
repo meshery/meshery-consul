@@ -20,6 +20,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	/* the auth package (below) is imported here instead of main.go to improve the reader's understanding,
+	   since this package is only used in context of other Kubernetes related code here. */
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
