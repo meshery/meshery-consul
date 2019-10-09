@@ -35,7 +35,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
-
+//CreateMeshInstance instantiates a new instance of Consul in a Kubernetes cluster.
 func (iClient *ConsulClient) CreateMeshInstance(_ context.Context, k8sReq *meshes.CreateMeshInstanceRequest) (*meshes.CreateMeshInstanceResponse, error) {
 	var k8sConfig []byte
 	contextName := ""
@@ -307,6 +307,7 @@ func (iClient *ConsulClient) createNamespace(ctx context.Context, namespace stri
 }
 
 // ApplyRule is a method invoked to apply a particular operation on the mesh in a namespace
+//ApplyOperation should be of the form "ApplyOperation ..."
 func (iClient *ConsulClient) ApplyOperation(ctx context.Context, arReq *meshes.ApplyRuleRequest) (*meshes.ApplyRuleResponse, error) {
 	if arReq == nil {
 		return nil, errors.New("mesh client has not been created")
