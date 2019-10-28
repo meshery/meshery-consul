@@ -62,7 +62,7 @@ func (d *YAMLDecoder) Read(data []byte) (n int, err error) {
 	return len(data), io.ErrShortBuffer
 }
 
-//exported method YAMLDecoder
+// Close closes the decoder
 func (d *YAMLDecoder) Close() error {
 	return d.r.Close()
 }

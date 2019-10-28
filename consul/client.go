@@ -27,8 +27,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// ConsulClient represents an consul client in Meshery
-type ConsulClient struct {
+// Client represents an consul client in Meshery
+type Client struct {
 	config           *rest.Config
 	k8sClientset     *kubernetes.Clientset
 	k8sDynamicClient dynamic.Interface
