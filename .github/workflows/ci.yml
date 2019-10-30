@@ -1,4 +1,4 @@
-name: Meshery-Consul
+name: Meshery Consul
 on:
   push:
     branches:
@@ -35,7 +35,7 @@ jobs:
 #       uses: actions/setup-go@v1
 #       with:
 #         go-version: ${{ secrets.GO_VERSION }}
-#     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go get -u github.com/kisielk/errcheck; /home/runner/go/bin/errcheck ./...
+#     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go get -u github.com/kisielk/errcheck; /home/runner/go/bin/errcheck -tags draft ./...
 #   static_check:
 #     name: Static check
 #     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
 #       uses: actions/setup-go@v1
 #       with:
 #         go-version: ${{ secrets.GO_VERSION }}
-#     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go get -u honnef.co/go/tools/cmd/staticcheck; /home/runner/go/bin/staticcheck -checks all ./... # https://staticcheck.io/docs/checks
+#     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go get -u honnef.co/go/tools/cmd/staticcheck; /home/runner/go/bin/staticcheck -tags draft -checks all ./... # https://staticcheck.io/docs/checks
 #   vet:
 #     name: Vet
 #     runs-on: ubuntu-latest
@@ -61,7 +61,7 @@ jobs:
 #       uses: actions/setup-go@v1
 #       with:
 #         go-version: ${{ secrets.GO_VERSION }}
-#     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go vet ./...
+#     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go vet -tags draft ./...
 #   sec_check:
 #     name: Security check
 #     runs-on: ubuntu-latest
@@ -89,6 +89,25 @@ jobs:
 #       with:
 #         go-version: ${{ secrets.GO_VERSION }}
 #     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go test ./...
+  build:
+    name: Meshery build check
+    runs-on: ubuntu-latest
+    # needs: [lint, error_check, static_check, vet, sec_check, tests]
+    steps:
+    - name: Check out code
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 1
+    - name: Setup Go
+      uses: actions/setup-go@v1
+      with:
+        go-version: ${{ secrets.GO_VERSION }}
+    - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go build
+    # - name: build ctl
+    #   uses: "cedrickring/golang-action@1.3.0"
+    #   with:
+    #     args: GO111MODULE=on go build ./mesheryctl/main.go
+  
   docker:
     name: Docker build and push
     runs-on: ubuntu-latest
@@ -124,3 +143,4 @@ jobs:
         DOCKERHUB_USERNAME: ${{ secrets.DOCKER_USERNAME }}
         DOCKERHUB_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         DOCKERHUB_REPOSITORY: ${{ secrets.IMAGE_NAME }}
+    
