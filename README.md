@@ -1,4 +1,4 @@
-<img align="right" src="https://layer5.io/assets/images/cube-sh-small.png" />
+<img align="right" src="https://layer5.io/assets/images/meshery/Meshery-RGB-Full-Light.png"  width="25%" />
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/layer5/meshery-consul.svg)](https://hub.docker.com/r/layer5/meshery-consul)
 [![Go Report Card](https://goreportcard.com/badge/github.com/layer5io/meshery-consul)](https://goreportcard.com/report/github.com/layer5io/meshery-consul)
