@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//Package consul ...
 package consul
 
 import (
@@ -35,6 +36,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
+
 //CreateMeshInstance instantiates a new instance of Consul in a Kubernetes cluster.
 func (iClient *Client) CreateMeshInstance(_ context.Context, k8sReq *meshes.CreateMeshInstanceRequest) (*meshes.CreateMeshInstanceResponse, error) {
 	var k8sConfig []byte
@@ -306,7 +308,6 @@ func (iClient *Client) createNamespace(ctx context.Context, namespace string) er
 	return nil
 }
 
-
 // ApplyOperation is a method invoked to apply a particular operation on the mesh in a namespace
 func (iClient *Client) ApplyOperation(ctx context.Context, arReq *meshes.ApplyRuleRequest) (*meshes.ApplyRuleResponse, error) {
 	if arReq == nil {
@@ -397,7 +398,7 @@ func (iClient *Client) ApplyOperation(ctx context.Context, arReq *meshes.ApplyRu
 				Summary:     fmt.Sprintf("%s %s successfully", appName, opName),
 				Details:     msg,
 			}
-			return
+
 		}()
 		return &meshes.ApplyRuleResponse{
 			OperationId: arReq.OperationId,
