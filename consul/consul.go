@@ -470,7 +470,11 @@ func (iClient *Client) splitYAML(yamlContents string) ([]string, error) {
 		logrus.Error(err)
 		return nil, err
 	}
-	defer yamlDecoder.Close()
+	defer func() {
+		if err := yamlDecoder.Close(); err != nil {
+			logrus.Error(err)
+		}
+	}()
 	var err error
 	n := 0
 	data := [][]byte{}
