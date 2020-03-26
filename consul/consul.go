@@ -328,7 +328,10 @@ func (iClient *Client) ApplyOperation(ctx context.Context, arReq *meshes.ApplyRu
 	isCustomOp := false
 
 	if !arReq.DeleteOp && arReq.Namespace != "default" {
-		iClient.createNamespace(ctx, arReq.Namespace)
+		if err := iClient.createNamespace(ctx, arReq.Namespace); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
 	}
 
 	var svcName, appName string
@@ -470,7 +473,11 @@ func (iClient *Client) splitYAML(yamlContents string) ([]string, error) {
 		logrus.Error(err)
 		return nil, err
 	}
-	defer yamlDecoder.Close()
+	defer func() {
+		if err := yamlDecoder.Close(); err != nil {
+			logrus.Error(err)
+		}
+	}()
 	var err error
 	n := 0
 	data := [][]byte{}
