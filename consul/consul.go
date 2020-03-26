@@ -328,7 +328,10 @@ func (iClient *Client) ApplyOperation(ctx context.Context, arReq *meshes.ApplyRu
 	isCustomOp := false
 
 	if !arReq.DeleteOp && arReq.Namespace != "default" {
-		iClient.createNamespace(ctx, arReq.Namespace)
+		if err := iClient.createNamespace(ctx, arReq.Namespace); err != nil {
+			logrus.Error(err)
+			return nil, err
+		}
 	}
 
 	var svcName, appName string
