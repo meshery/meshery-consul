@@ -31,6 +31,7 @@ const (
 	installConsulCommand   = "consul_install"
 	installBookInfoCommand = "install_book_info"
 	installHTTPBinCommand  = "install_http_bin"
+	installImageHubCommand = "install_image_hub"
 )
 
 var supportedOps = map[string]supportedOperation{
@@ -51,6 +52,11 @@ var supportedOps = map[string]supportedOperation{
 	installHTTPBinCommand: {
 		name:         "HTTPbin Application",
 		templateName: "httpbin-consul.yaml",
+		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
+	},
+	installImageHubCommand: {
+		name:         "Image Hub Application",
+		templateName: "image-hub.yaml",
 		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
 	},
 }

@@ -406,6 +406,67 @@ func (iClient *Client) ApplyOperation(ctx context.Context, arReq *meshes.ApplyRu
 		return &meshes.ApplyRuleResponse{
 			OperationId: arReq.OperationId,
 		}, nil
+	case installImageHubCommand:
+		if svcName == "" {
+			svcName = "ingess"
+			appName = "Image Hub"
+		}
+		yamlFileContents, err = iClient.executeTemplate(ctx, arReq.Username, arReq.Namespace, op.templateName)
+		if err != nil {
+			return nil, err
+		}
+		go func() {
+			opName1 := "deploying"
+			if arReq.DeleteOp {
+				opName1 = "removing"
+			}
+
+			if err := iClient.applyConfigChange(ctx, yamlFileContents, arReq.Namespace, arReq.DeleteOp, isCustomOp); err != nil {
+				iClient.eventChan <- &meshes.EventsResponse{
+					OperationId: arReq.OperationId,
+					EventType:   meshes.EventType_ERROR,
+					Summary:     fmt.Sprintf("Error while %s %s app", opName1, appName),
+					Details:     err.Error(),
+				}
+				return
+			}
+
+			opName := "deployed"
+			ports := []int64{}
+			if arReq.DeleteOp {
+				opName = "removed"
+			} else {
+				var err error
+				ports, err = iClient.getSVCPort(ctx, svcName, arReq.Namespace)
+				if err != nil {
+					iClient.eventChan <- &meshes.EventsResponse{
+						OperationId: arReq.OperationId,
+						EventType:   meshes.EventType_WARN,
+						Summary:     fmt.Sprintf("%s app is deployed but unable to retrieve the port info for the service at the moment", appName),
+						Details:     err.Error(),
+					}
+					return
+				}
+			}
+			var portMsg string
+			if len(ports) == 1 {
+				portMsg = fmt.Sprintf("The service is possibly available on port: %v", ports)
+			} else if len(ports) > 1 {
+				portMsg = fmt.Sprintf("The service is possibly available on one of the following ports: %v", ports)
+			}
+			msg := fmt.Sprintf("%s app is now %s. %s", appName, opName, portMsg)
+
+			iClient.eventChan <- &meshes.EventsResponse{
+				OperationId: arReq.OperationId,
+				EventType:   meshes.EventType_INFO,
+				Summary:     fmt.Sprintf("%s %s successfully", appName, opName),
+				Details:     msg,
+			}
+
+		}()
+		return &meshes.ApplyRuleResponse{
+			OperationId: arReq.OperationId,
+		}, nil
 	// case installConsulCommand:
 	// 	yamlFileContents = op.templateName
 	// 	fallthrough
