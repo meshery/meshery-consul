@@ -4,7 +4,7 @@
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/layer5/meshery-consul.svg)](https://hub.docker.com/r/layer5/meshery-consul)
 [![Go Report Card](https://goreportcard.com/badge/github.com/layer5io/meshery-consul)](https://goreportcard.com/report/github.com/layer5io/meshery-consul)
-[![Build Status](https://github.com/layer5io/meshery-consul/workflows/Meshery-Consul/badge.svg)](https://github.com/layer5io/meshery-consul/actions)
+[![Build Status](https://github.com/layer5io/meshery-consul/workflows/Meshery%20Consul/badge.svg)](https://github.com/layer5io/meshery-consul/actions)
 [![GitHub](https://img.shields.io/github/license/layer5io/meshery-consul.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GitHub issues by-label](https://img.shields.io/github/issues/layer5io/meshery-consul/help%20wanted.svg)](https://github.com/layer5io/meshery-consul/issues?q=is%3Aopen+is%3Aissue+label%3A"help+wanted")
 [![Website](https://img.shields.io/website/https/layer5.io/meshery.svg)](https://layer5.io/meshery/)
