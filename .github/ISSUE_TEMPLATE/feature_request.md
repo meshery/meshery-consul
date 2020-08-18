@@ -1,20 +1,22 @@
 ---
-name: Feature request
-about: Suggest an enhancement to this project
+name: Feature Request
+about: Suggest an enhancement to this project.
 title: ''
-labels: 'enhancement'
+labels: 'kind/enhancement'
 assignees: ''
 ---
 
-**Enhancement Description**
-A brief description of the enhancement.
+**Current Behavior**
+<!-- A brief description of what the problem is. (e.g. I need to be able to...) -->
 
-**Related Challenges**
-A brief description of what the problem is. (e.g. I need to be able to...)
+
+**Desired Behavior**
+<!-- A brief description of the enhancement. -->
+
 
 ---
-[Optional] **Alternatives**
-A brief description of any alternative solutions or features you've considered.
+**Resources**
+<!-- Helpful tools and reference information. -->
 
-[Optional] **Additional context**
-Add any other context or screenshots about the feature request here.
+**Alternatives / Additional Context**
+<!-- A brief description of any alternative solutions or features you've considered or other context that might be helpful. -->
