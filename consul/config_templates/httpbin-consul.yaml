@@ -13,12 +13,15 @@ spec:
   selector:
     app: httpbin
 ---
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: httpbin
 spec:
   replicas: 1
+  selector:
+    matchLabels:
+      app: httpbin
   template:
     metadata:
       labels:
@@ -33,3 +36,4 @@ spec:
         name: httpbin
         ports:
         - containerPort: 80
+
