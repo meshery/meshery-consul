@@ -2,7 +2,7 @@ name: Meshery Consul
 on:
   push:
     branches:
-      - '*'
+      - '**'
     tags:
       - 'v*'
   pull_request:
