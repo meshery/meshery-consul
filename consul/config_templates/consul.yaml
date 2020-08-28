@@ -6,20 +6,55 @@ apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
   name: consul-consul-server
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 spec:
-  maxUnavailable: 1
+  maxUnavailable: 0
   selector:
     matchLabels:
       app: consul
       release: "consul"
       component: server
-
+---
+# Source: consul/templates/client-serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: consul-consul-client
+  namespace: {{.namespace}}
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: consul
+---
+# Source: consul/templates/connect-inject-serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: consul-consul-connect-injector-webhook-svc-account
+  namespace: {{.namespace}}
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: consul
+---
+# Source: consul/templates/server-serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: consul-consul-server
+  namespace: {{.namespace}}
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: consul
 ---
 # Source: consul/templates/client-config-configmap.yaml
 # ConfigMap with extra configuration specified directly to the chart
@@ -28,17 +63,20 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: consul-consul-client-config
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 data:
   extra-from-values.json: |-
     {}
     
-
+  central-config.json: |-
+    {
+      "enable_central_service_config": true
+    }
 ---
 # Source: consul/templates/server-config-configmap.yaml
 # StatefulSet to run the actual Consul server cluster.
@@ -46,72 +84,20 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: consul-consul-server-config
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 data:
   extra-from-values.json: |-
     {}
     
-
----
-# Source: consul/templates/client-serviceaccount.yaml
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: consul-consul-client
-  namespace: consul
-  labels:
-    app: consul
-    chart: consul-helm
-    heritage: Tiller
-    release: consul
-
----
-# Source: consul/templates/connect-inject-serviceaccount.yaml
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: consul-consul-connect-injector-webhook-svc-account
-  namespace: consul
-  labels:
-    app: consul
-    chart: consul-helm
-    heritage: Tiller
-    release: consul
-
----
-# Source: consul/templates/server-serviceaccount.yaml
-
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: consul-consul-server
-  namespace: consul
-  labels:
-    app: consul
-    chart: consul-helm
-    heritage: Tiller
-    release: consul
-
----
-# Source: consul/templates/client-clusterrole.yaml
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: consul-consul-client
-  labels:
-    app: consul
-    chart: consul-helm
-    heritage: Tiller
-    release: consul
-
+  central-config.json: |-
+    {
+      "enable_central_service_config": true
+    }
 ---
 # Source: consul/templates/connect-inject-clusterrole.yaml
 # The ClusterRole to enable the Connect injector to get, list, watch and patch MutatingWebhookConfiguration.
@@ -122,7 +108,7 @@ metadata:
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 rules:
 - apiGroups: ["admissionregistration.k8s.io"]
@@ -132,44 +118,8 @@ rules:
     - "list"
     - "watch"
     - "patch"
-
----
-# Source: consul/templates/server-clusterrole.yaml
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: consul-consul-server
-  labels:
-    app: consul
-    chart: consul-helm
-    heritage: Tiller
-    release: consul
-
----
-# Source: consul/templates/client-clusterrolebinding.yaml
-
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
-metadata:
-  name: consul-consul-client
-  labels:
-    app: consul
-    chart: consul-helm
-    heritage: Tiller
-    release: consul
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: consul-consul-client
-subjects:
-  - kind: ServiceAccount
-    name: consul-consul-client
-    namespace: consul
-
 ---
 # Source: consul/templates/connect-inject-clusterrolebinding.yaml
-
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
@@ -177,7 +127,7 @@ metadata:
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 roleRef:
   apiGroup: rbac.authorization.k8s.io
@@ -186,29 +136,71 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: consul-consul-connect-injector-webhook-svc-account
-    namespace: consul
-
+    namespace: {{.namespace}}
 ---
-# Source: consul/templates/server-clusterrolebinding.yaml
-
+# Source: consul/templates/client-role.yaml
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRoleBinding
+kind: Role
 metadata:
-  name: consul-consul-server
+  name: consul-consul-client
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
+    release: consul
+rules: []
+---
+# Source: consul/templates/server-role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: consul-consul-server
+  namespace: {{.namespace}}
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: consul
+rules: []
+---
+# Source: consul/templates/client-rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: consul-consul-client
+  namespace: {{.namespace}}
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
     release: consul
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: Role
+  name: consul-consul-client
+subjects:
+  - kind: ServiceAccount
+    name: consul-consul-client
+---
+# Source: consul/templates/server-rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: consul-consul-server
+  namespace: {{.namespace}}
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: consul
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
   name: consul-consul-server
 subjects:
   - kind: ServiceAccount
     name: consul-consul-server
-    namespace: consul
-
 ---
 # Source: consul/templates/connect-inject-service.yaml
 # The service for the Connect sidecar injector
@@ -216,11 +208,11 @@ apiVersion: v1
 kind: Service
 metadata:
   name: consul-consul-connect-injector-svc
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 spec:
   ports:
@@ -230,8 +222,6 @@ spec:
     app: consul
     release: "consul"
     component: connect-injector
-
-
 ---
 # Source: consul/templates/dns-service.yaml
 # Service for Consul DNS.
@@ -239,12 +229,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: consul-consul-dns
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
+    component: dns
 spec:
   ports:
     - name: dns-tcp
@@ -259,7 +250,6 @@ spec:
     app: consul
     release: "consul"
     hasDNS: "true"
-
 ---
 # Source: consul/templates/server-service.yaml
 # Headless service for Consul server DNS entries. This service should only
@@ -271,12 +261,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: consul-consul-server
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
+    component: server
   annotations:
     # This must be set in addition to publishNotReadyAddresses due
     # to an open issue where it may not work:
@@ -322,7 +313,6 @@ spec:
     app: consul
     release: "consul"
     component: server
-
 ---
 # Source: consul/templates/ui-service.yaml
 # UI Service for Consul Server
@@ -330,12 +320,13 @@ apiVersion: v1
 kind: Service
 metadata:
   name: consul-consul-ui
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
+    component: ui
 spec:
   selector:
     app: consul
@@ -345,7 +336,6 @@ spec:
     - name: http
       port: 80
       targetPort: 8500
-
 ---
 # Source: consul/templates/client-daemonset.yaml
 # DaemonSet to run the Consul clients on every node.
@@ -353,11 +343,11 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: consul-consul
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 spec:
   selector:
@@ -377,25 +367,22 @@ spec:
         hasDNS: "true"
       annotations:
         "consul.hashicorp.com/connect-inject": "false"
+        "consul.hashicorp.com/config-checksum": ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356
     spec:
       terminationGracePeriodSeconds: 10
       serviceAccountName: consul-consul-client
 
-      # Consul agents require a directory for data, even clients. The data
-      # is okay to be wiped though if the Pod is removed, so just use an
-      # emptyDir volume.
       volumes:
         - name: data
           emptyDir: {}
         - name: config
           configMap:
             name: consul-consul-client-config
-
       containers:
         - name: consul
-          image: "consul:1.5.0"
+          image: "consul:1.8.2"
           env:
-            - name: POD_IP
+            - name: ADVERTISE_IP
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
@@ -407,6 +394,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
+            - name: HOST_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.hostIP
             
           command:
             - "/bin/sh"
@@ -416,29 +407,22 @@ spec:
 
               exec /bin/consul agent \
                 -node="${NODE}" \
-                -advertise="${POD_IP}" \
+                -advertise="${ADVERTISE_IP}" \
                 -bind=0.0.0.0 \
                 -client=0.0.0.0 \
-                -hcl="ports { grpc = 8502 }" \
+                -node-meta=pod-name:${HOSTNAME} \
+                -hcl='leave_on_terminate = true' \
+                -hcl='ports { grpc = 8502 }' \
                 -config-dir=/consul/config \
                 -datacenter=dc1 \
                 -data-dir=/consul/data \
-                -retry-join=${CONSUL_FULLNAME}-server-0.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc \
-                -retry-join=${CONSUL_FULLNAME}-server-1.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc \
-                -retry-join=${CONSUL_FULLNAME}-server-2.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc \
+                -retry-join="${CONSUL_FULLNAME}-server-0.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc" \
                 -domain=consul
           volumeMounts:
             - name: data
               mountPath: /consul/data
             - name: config
               mountPath: /consul/config
-          lifecycle:
-            preStop:
-              exec:
-                command:
-                - /bin/sh
-                - -c
-                - consul leave
           ports:
             - containerPort: 8500
               hostPort: 8500
@@ -447,7 +431,11 @@ spec:
               hostPort: 8502
               name: grpc
             - containerPort: 8301
-              name: serflan
+              protocol: "TCP"
+              name: serflan-tcp
+            - containerPort: 8301
+              protocol: "UDP"
+              name: serflan-udp
             - containerPort: 8302
               name: serfwan
             - containerPort: 8300
@@ -466,43 +454,15 @@ spec:
                 - "/bin/sh"
                 - "-ec"
                 - |
-                  curl http://127.0.0.1:8500/v1/status/leader 2>/dev/null | \
-                  grep -E '".+"'
-
----
-# Source: consul/templates/tests/test-runner.yaml
-apiVersion: v1
-kind: Pod
-metadata:
-  name: "consul-consul-test-1klet"
-  labels:
-    app: consul
-    chart: consul-helm
-    heritage: Tiller
-    release: consul
-  annotations:
-    "helm.sh/hook": test-success
-spec:
-  containers:
-    - name: consul-test
-      image: "consul:1.5.0"
-      env:
-        - name: HOST_IP
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
-      command:
-        - "/bin/sh"
-        - "-ec"
-        - |
-            export VALUE="i66r7ndr4tjqbyfnh60o5lgo"
-            export CONSUL_HTTP_ADDR="${HOST_IP}:8500"
-            consul kv delete _consul_helm_test
-            consul kv put _consul_helm_test $VALUE
-            [ `consul kv get _consul_helm_test` = "$VALUE" ]
-            consul kv delete _consul_helm_test
-  restartPolicy: Never
-
+                  curl http://127.0.0.1:8500/v1/status/leader \
+                  2>/dev/null | grep -E '".+"'
+          resources:
+            limits:
+              cpu: 100m
+              memory: 100Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
 ---
 # Source: consul/templates/connect-inject-deployment.yaml
 # The deployment for running the Connect sidecar injector
@@ -510,11 +470,11 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: consul-consul-connect-injector-webhook-deployment
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 spec:
   replicas: 1
@@ -537,7 +497,7 @@ spec:
       serviceAccountName: consul-consul-connect-injector-webhook-svc-account
       containers:
         - name: sidecar-injector
-          image: "hashicorp/consul-k8s:0.8.1"
+          image: "hashicorp/consul-k8s:0.18.1"
           env:
             - name: NAMESPACE
               valueFrom:
@@ -551,10 +511,21 @@ spec:
 
               consul-k8s inject-connect \
                 -default-inject=false \
-                -consul-image="consul:1.5.0" \
+                -consul-image="consul:1.8.2" \
+                -consul-k8s-image="hashicorp/consul-k8s:0.18.1" \
                 -listen=:8080 \
+                -enable-central-config=true \
+                -allow-k8s-namespace="*" \
                 -tls-auto=${CONSUL_FULLNAME}-connect-injector-cfg \
-                -tls-auto-hosts=${CONSUL_FULLNAME}-connect-injector-svc,${CONSUL_FULLNAME}-connect-injector-svc.${NAMESPACE},${CONSUL_FULLNAME}-connect-injector-svc.${NAMESPACE}.svc
+                -tls-auto-hosts=${CONSUL_FULLNAME}-connect-injector-svc,${CONSUL_FULLNAME}-connect-injector-svc.${NAMESPACE},${CONSUL_FULLNAME}-connect-injector-svc.${NAMESPACE}.svc \
+                -init-container-memory-limit=150Mi \
+                -init-container-memory-request=25Mi \
+                -init-container-cpu-limit=50m \
+                -init-container-cpu-request=50m \
+                -lifecycle-sidecar-memory-limit=50Mi \
+                -lifecycle-sidecar-memory-request=25Mi \
+                -lifecycle-sidecar-cpu-limit=20m \
+                -lifecycle-sidecar-cpu-request=20m \
           livenessProbe:
             httpGet:
               path: /health/ready
@@ -575,7 +546,13 @@ spec:
             periodSeconds: 2
             successThreshold: 1
             timeoutSeconds: 5
-
+          resources:
+            limits:
+              cpu: 50m
+              memory: 50Mi
+            requests:
+              cpu: 50m
+              memory: 50Mi
 ---
 # Source: consul/templates/server-statefulset.yaml
 # StatefulSet to run the actual Consul server cluster.
@@ -583,16 +560,17 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: consul-consul-server
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
+    component: server
 spec:
   serviceName: consul-consul-server
   podManagementPolicy: Parallel
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: consul
@@ -610,6 +588,7 @@ spec:
         hasDNS: "true"
       annotations:
         "consul.hashicorp.com/connect-inject": "false"
+        "consul.hashicorp.com/config-checksum": ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356
     spec:
       affinity:
         podAntiAffinity:
@@ -620,7 +599,7 @@ spec:
                   release: "consul"
                   component: server
               topologyKey: kubernetes.io/hostname
-      terminationGracePeriodSeconds: 10
+      terminationGracePeriodSeconds: 30
       serviceAccountName: consul-consul-server
       securityContext:
         fsGroup: 1000
@@ -630,7 +609,7 @@ spec:
             name: consul-consul-server-config
       containers:
         - name: consul
-          image: "consul:1.5.0"
+          image: "consul:1.8.2"
           env:
             - name: POD_IP
               valueFrom:
@@ -650,7 +629,7 @@ spec:
               exec /bin/consul agent \
                 -advertise="${POD_IP}" \
                 -bind=0.0.0.0 \
-                -bootstrap-expect=3 \
+                -bootstrap-expect=1 \
                 -client=0.0.0.0 \
                 -config-dir=/consul/config \
                 -datacenter=dc1 \
@@ -659,8 +638,6 @@ spec:
                 -hcl="connect { enabled = true }" \
                 -ui \
                 -retry-join=${CONSUL_FULLNAME}-server-0.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc \
-                -retry-join=${CONSUL_FULLNAME}-server-1.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc \
-                -retry-join=${CONSUL_FULLNAME}-server-2.${CONSUL_FULLNAME}-server.${NAMESPACE}.svc \
                 -server
           volumeMounts:
             - name: data-consul
@@ -697,13 +674,20 @@ spec:
                 - "/bin/sh"
                 - "-ec"
                 - |
-                  curl http://127.0.0.1:8500/v1/status/leader 2>/dev/null | \
-                  grep -E '".+"'
+                  curl http://127.0.0.1:8500/v1/status/leader \
+                  2>/dev/null | grep -E '".+"'
             failureThreshold: 2
             initialDelaySeconds: 5
             periodSeconds: 3
             successThreshold: 1
-            timeoutSeconds: 5    
+            timeoutSeconds: 5
+          resources:
+            limits:
+              cpu: 100m
+              memory: 100Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
   volumeClaimTemplates:
     - metadata:
         name: data-consul
@@ -713,7 +697,6 @@ spec:
         resources:
           requests:
             storage: 10Gi
-
 ---
 # Source: consul/templates/connect-inject-mutatingwebhook.yaml
 # The MutatingWebhookConfiguration to enable the Connect injector.
@@ -721,96 +704,59 @@ apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: consul-consul-connect-injector-cfg
-  namespace: consul
+  namespace: {{.namespace}}
   labels:
     app: consul
     chart: consul-helm
-    heritage: Tiller
+    heritage: Helm
     release: consul
 webhooks:
   - name: consul-consul-connect-injector.consul.hashicorp.com
     clientConfig:
       service:
         name: consul-consul-connect-injector-svc
-        namespace: consul
+        namespace: {{.namespace}}
         path: "/mutate"
-      caBundle: 
+      caBundle: ""
     rules:
       - operations: [ "CREATE" ]
         apiGroups: [""]
         apiVersions: ["v1"]
         resources: ["pods"]
-
 ---
-# Source: consul/templates/client-podsecuritypolicy.yaml
+# Source: consul/templates/tests/test-runner.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "consul-consul-test"
+  namespace: {{.namespace}}
+  labels:
+    app: consul
+    chart: consul-helm
+    heritage: Helm
+    release: consul
+  annotations:
+    "helm.sh/hook": test-success
+spec:
+  containers:
+    - name: consul-test
+      image: "consul:1.8.2"
+      env:
+        - name: HOST_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: CONSUL_HTTP_ADDR
+          value: http://$(HOST_IP):8500
+      command:
+        - "/bin/sh"
+        - "-ec"
+        - |
+            consul members | tee members.txt
+            if [ $(grep -c consul-server members.txt) != $(grep consul-server members.txt | grep -c alive) ]
+            then
+              echo "Failed because not all consul servers are available"
+              exit 1
+            fi
 
-
----
-# Source: consul/templates/connect-inject-authmethod-clusterrole.yaml
-
-
----
-# Source: consul/templates/connect-inject-authmethod-clusterrolebinding.yaml
-
-
----
-# Source: consul/templates/connect-inject-authmethod-serviceaccount.yaml
-
-
----
-# Source: consul/templates/connect-inject-podsecuritypolicy.yaml
-
-
----
-# Source: consul/templates/enterprise-license-clusterrole.yaml
-
-
----
-# Source: consul/templates/enterprise-license-clusterrolebinding.yaml
-
-
----
-# Source: consul/templates/enterprise-license-serviceaccount.yaml
-
-
----
-# Source: consul/templates/enterprise-license.yaml
-
-
----
-# Source: consul/templates/server-acl-init-clusterrole.yaml
-
----
-# Source: consul/templates/server-acl-init-clusterrolebinding.yaml
-
----
-# Source: consul/templates/server-acl-init-job.yaml
-
-
----
-# Source: consul/templates/server-acl-init-serviceaccount.yaml
-
----
-# Source: consul/templates/server-podsecuritypolicy.yaml
-
-
----
-# Source: consul/templates/sync-catalog-clusterrole.yaml
-
-
----
-# Source: consul/templates/sync-catalog-clusterrolebinding.yaml
-
-
----
-# Source: consul/templates/sync-catalog-deployment.yaml
-# The deployment for running the sync-catalog pod
-
----
-# Source: consul/templates/sync-catalog-podsecuritypolicy.yaml
-
-
----
-# Source: consul/templates/sync-catalog-serviceaccount.yaml
-
-
+  restartPolicy: Never
