@@ -40,7 +40,7 @@ var supportedOps = map[string]supportedOperation{
 		opType: meshes.OpCategory_CUSTOM,
 	},
 	installConsulCommand: {
-		name:         "Latest version of Consul with sidecar injector",
+		name:         "Consul Connect: unsecured, 1 server, suitable for local exploration",
 		templateName: "consul.yaml",
 		opType:       meshes.OpCategory_INSTALL,
 	},
