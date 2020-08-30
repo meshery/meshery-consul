@@ -401,7 +401,6 @@ func (iClient *Client) ApplyOperation(ctx context.Context, arReq *meshes.ApplyRu
 				Summary:     fmt.Sprintf("%s %s successfully", appName, opName),
 				Details:     msg,
 			}
-
 		}()
 		return &meshes.ApplyRuleResponse{
 			OperationId: arReq.OperationId,
@@ -462,7 +461,6 @@ func (iClient *Client) ApplyOperation(ctx context.Context, arReq *meshes.ApplyRu
 				Summary:     fmt.Sprintf("%s %s successfully", appName, opName),
 				Details:     msg,
 			}
-
 		}()
 		return &meshes.ApplyRuleResponse{
 			OperationId: arReq.OperationId,
@@ -524,7 +522,6 @@ func (iClient *Client) StreamEvents(in *meshes.EventsRequest, stream meshes.Mesh
 		}
 		time.Sleep(500 * time.Millisecond)
 	}
-	return nil
 }
 
 func (iClient *Client) splitYAML(yamlContents string) ([]string, error) {
