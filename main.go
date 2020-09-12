@@ -20,10 +20,10 @@ import (
 	"net"
 	"os"
 
+	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/grpclog"
-
-	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/layer5io/meshery-consul/consul"
 	mesh "github.com/layer5io/meshery-consul/meshes"
@@ -55,6 +55,7 @@ func main() {
 	s := grpc.NewServer(
 	// grpc.Creds(credentials.NewServerTLSFromCert(&insecure.Cert)),
 	)
+	reflection.Register(s)
 	mesh.RegisterMeshServiceServer(s, &consul.Client{})
 
 	// Serve gRPC Server
