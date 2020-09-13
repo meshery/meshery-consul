@@ -13,7 +13,7 @@ EOT
 }
 
 @test "client instance should be created" {
-  run bash -c "echo '$CREATE_MESH_REQ_MSG' | grpcurl --plaintext -d @ localhost:10002 meshes.MeshService.CreateMeshInstance"
+  run bash -c "echo '$CREATE_MESH_REQ_MSG' | grpcurl --plaintext -d @ $MESHERY_ADAPTER_ADDR:10002 meshes.MeshService.CreateMeshInstance"
   [ "$status" -eq 0 ]
 }
 
@@ -29,11 +29,11 @@ EOT
 }
 EOT
 )
-  run bash -c "echo '$INSTALL_CONSUL' | grpcurl --plaintext -d @ localhost:10002 meshes.MeshService.ApplyOperation"
+  run bash -c "echo '$INSTALL_CONSUL' | grpcurl --plaintext -d @ $MESHERY_ADAPTER_ADDR:10002 meshes.MeshService.ApplyOperation"
   [ "$status" -eq 0 ]
 }
 
 @test "all pods should be ready" {
-  run kubectl wait pod --all -n consul-e2e-tests --for=condition=Ready --timeout=60s
+  run kubectl wait pod --all -n consul-e2e-tests --for=condition=Ready --timeout=30s
   [ "$status" -eq 0 ]
 }
