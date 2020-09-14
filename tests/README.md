@@ -18,6 +18,10 @@ repeat for all sample applications, and finally delete the mesh.
 * gRPCurl: https://github.com/fullstorydev/grpcurl
 * The environment variable `MESHERY_ADAPTER_ADDR` is defined specifies the IP address or DNS name of the meshery adapter, e.g. `localhost`
 
+## Implementation notes
+
+As BATS is executing the test files alphabetically, the first two letters in the filenames are used to enforce the correct sequence.   
+
 ## Running the tests
 
 * use `make` with one of the `e2e-` targets

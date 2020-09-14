@@ -1,5 +1,5 @@
 @test "consul_install delete should be successful" {
-  INSTALL_CONSUL=$(cat <<EOT
+  DELETE_CONSUL=$(cat <<EOT
 {
   "opName": "consul_install",
   "namespace": "consul-e2e-tests",
@@ -10,7 +10,7 @@
 }
 EOT
 )
-  run bash -c "echo '$INSTALL_CONSUL' | grpcurl --plaintext -d @ $MESHERY_ADAPTER_ADDR:10002 meshes.MeshService.ApplyOperation"
+  run bash -c "echo '$DELETE_CONSUL' | grpcurl --plaintext -d @ $MESHERY_ADAPTER_ADDR:10002 meshes.MeshService.ApplyOperation"
   [ "$status" -eq 0 ]
 }
 

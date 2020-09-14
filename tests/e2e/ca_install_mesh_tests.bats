@@ -33,7 +33,17 @@ EOT
   [ "$status" -eq 0 ]
 }
 
-@test "all pods should be ready" {
-  run kubectl wait pod --all -n consul-e2e-tests --for=condition=Ready --timeout=30s
+@test "deployment/consul-consul-connect-injector-webhook-deployment should be ready" {
+  run kubectl rollout status deployment/consul-consul-connect-injector-webhook-deployment -n consul-e2e-tests
+  [ "$status" -eq 0 ]
+}
+
+@test "statefulset/consul-consul-server should be ready" {
+  run kubectl rollout status statefulset/consul-consul-server -n consul-e2e-tests
+  [ "$status" -eq 0 ]
+}
+
+@test "daemonset/consul-consul should be ready" {
+  run kubectl rollout status daemonset/consul-consul -n consul-e2e-tests
   [ "$status" -eq 0 ]
 }
