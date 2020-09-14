@@ -6,8 +6,8 @@ A basic set of simple end-to-end tests that check basic functionality. Initially
 only locally, i.e. not as part of the CI pipeline. At first, the tests will not be fully automated, i.e. require 
 some manual setup, e.g. setting up a local cluster.
 
-The basic pattern of a test is to install the mesh in the cluster, wait until all pods are ready, install sample 
-applications, wait until all pods are ready, possibly test the sample application, delete the sample application, 
+The basic pattern of a test is to install the mesh in the cluster, wait until all rollouts are ready, install sample 
+applications, wait until all rollouts are ready, possibly test the sample application, delete the sample application, 
 repeat for all sample applications, and finally delete the mesh.
 
 ## Prerequisites
