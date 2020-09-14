@@ -17,6 +17,7 @@ repeat for all sample applications, and finally delete the mesh.
 * BATS: https://github.com/bats-core/bats-core
 * gRPCurl: https://github.com/fullstorydev/grpcurl
 * The environment variable `MESHERY_ADAPTER_ADDR` is defined specifies the IP address or DNS name of the meshery adapter, e.g. `localhost`
+* The adaptor is running.
 
 ## Implementation notes
 
