@@ -55,6 +55,10 @@ func main() {
 	s := grpc.NewServer(
 	// grpc.Creds(credentials.NewServerTLSFromCert(&insecure.Cert)),
 	)
+	// Reflection is enabled to simplify accessing the gRPC service using gRPCurl, e.g.
+	//    grpcurl --plaintext localhost:10002 meshes.MeshService.SupportedOperations
+	// If the use of reflection is not desirable, the parameters '-import-path ./meshes/ -proto meshops.proto' have
+	//    to be added to each grpcurl request, with the appropriate import path.
 	reflection.Register(s)
 	mesh.RegisterMeshServiceServer(s, &consul.Client{})
 
