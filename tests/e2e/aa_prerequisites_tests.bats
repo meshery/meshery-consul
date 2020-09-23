@@ -9,7 +9,7 @@
 }
 
 @test "base64 should be installed" {
-  run base64 --version
+  run which base64
   [ "$status" -eq 0 ]
 }
 

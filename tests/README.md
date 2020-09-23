@@ -15,6 +15,7 @@ repeat for all sample applications, and finally delete the mesh.
 * A local cluster, e.g. microk8s. The tests were tested using microk8s 1.16/stable.
 * `kubectl`
 * `jq`, a tool for processing JSON inputs.
+* `base64`, used to encode kubeconfig. 
 * BATS, the Bash Automated Testing System: https://github.com/bats-core/bats-core
 * gRPCurl, a command-line tool to interact with gRPC servers: https://github.com/fullstorydev/grpcurl
 * The environment variable `MESHERY_ADAPTER_ADDR` is defined and specifies the IP address or DNS name of the meshery
