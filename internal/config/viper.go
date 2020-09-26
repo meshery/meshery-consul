@@ -1,7 +1,7 @@
 package config
 
 import (
-	"errors"
+	"github.com/mgfeller/common-adapter-library/adapter"
 	"github.com/mgfeller/common-adapter-library/config"
 	"github.com/spf13/viper"
 )
@@ -10,13 +10,14 @@ const (
 	ServerKey       = "server"
 	MeshSpecKey     = "mesh"
 	MeshInstanceKey = "instance"
+	OperationsKey   = "operations"
 )
 
 type Viper struct {
 	instance *viper.Viper
 }
 
-func NewViper(serverConfig map[string]string, meshConfig map[string]string, providerConfig map[string]string) (config.Handler, error) {
+func NewViper(serverConfig map[string]string, meshConfig map[string]string, providerConfig map[string]string, operations adapter.Operations) (config.Handler, error) {
 	v := viper.New()
 	v.AddConfigPath(providerConfig["filepath"])
 	v.SetConfigType(providerConfig["filetype"])
@@ -29,6 +30,10 @@ func NewViper(serverConfig map[string]string, meshConfig map[string]string, prov
 
 	for key, value := range meshConfig {
 		v.SetDefault(MeshSpecKey+"."+key, value)
+	}
+
+	for key, value := range operations {
+		v.Set(OperationsKey+"."+key, value)
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
@@ -65,5 +70,5 @@ func (v *Viper) MeshInstance(result interface{}) error {
 }
 
 func (v *Viper) Operations(result interface{}) error {
-	return errors.New("config 'operations' not implemented")
+	return v.instance.Sub(OperationsKey).Unmarshal(result)
 }

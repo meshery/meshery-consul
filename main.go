@@ -21,6 +21,7 @@ import (
 	"github.com/layer5io/gokit/utils"
 	"github.com/layer5io/meshery-consul/consul"
 	"github.com/layer5io/meshery-consul/internal/config"
+	"github.com/layer5io/meshery-consul/internal/operations"
 	"github.com/mgfeller/common-adapter-library/api/grpc"
 	"os"
 	"time"
@@ -39,7 +40,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	config, err := config.New(configProvider, config.ServerDefaults, config.MeshDefaults, config.ViperDefaults)
+	config, err := config.New(configProvider, config.ServerDefaults, config.MeshDefaults, config.ViperDefaults, operations.Operations)
 	if err != nil {
 		log.Err("Config Init Failed", err.Error())
 		os.Exit(1)
