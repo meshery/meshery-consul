@@ -15,54 +15,47 @@
 package main
 
 import (
-	"flag"
 	"fmt"
-	"net"
-	"os"
-
-	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/grpclog"
-	"google.golang.org/grpc/reflection"
-
+	"github.com/layer5io/gokit/errors"
+	"github.com/layer5io/gokit/logger"
+	"github.com/layer5io/gokit/utils"
 	"github.com/layer5io/meshery-consul/consul"
-	mesh "github.com/layer5io/meshery-consul/meshes"
+	"github.com/layer5io/meshery-consul/internal/config"
+	"github.com/mgfeller/common-adapter-library/api/grpc"
+	"os"
+	"time"
 )
 
 var (
-	gRPCPort = flag.Int("grpc-port", 10002, "The gRPC server port")
+	serviceName    = "consul-adaptor"
+	configProvider = "viper"
+	kubeConfigPath = fmt.Sprintf("%s/.kube/meshery.config", utils.GetHome())
 )
 
-var log grpclog.LoggerV2
-
-func init() {
-	log = grpclog.NewLoggerV2(os.Stdout, os.Stdout, os.Stdout)
-	grpclog.SetLoggerV2(log)
-}
-
 func main() {
-	flag.Parse()
-
-	if os.Getenv("DEBUG") == "true" {
-		logrus.SetLevel(logrus.DebugLevel)
-	}
-
-	addr := fmt.Sprintf(":%d", *gRPCPort)
-	lis, err := net.Listen("tcp", addr)
+	log, err := logger.New(serviceName)
 	if err != nil {
-		logrus.Fatalln("Failed to listen:", err)
+		fmt.Println("Logger Init Failed", err.Error())
+		os.Exit(1)
 	}
-	s := grpc.NewServer(
-	// grpc.Creds(credentials.NewServerTLSFromCert(&insecure.Cert)),
-	)
-	// Reflection is enabled to simplify accessing the gRPC service using gRPCurl, e.g.
-	//    grpcurl --plaintext localhost:10002 meshes.MeshService.SupportedOperations
-	// If the use of reflection is not desirable, the parameters '-import-path ./meshes/ -proto meshops.proto' have
-	//    to be added to each grpcurl request, with the appropriate import path.
-	reflection.Register(s)
-	mesh.RegisterMeshServiceServer(s, &consul.Client{})
 
-	// Serve gRPC Server
-	logrus.Infof("Serving gRPC on %s", addr)
-	logrus.Fatal(s.Serve(lis))
+	config, err := config.New(configProvider, config.ServerDefaults, config.MeshDefaults, config.ViperDefaults)
+	if err != nil {
+		log.Err("Config Init Failed", err.Error())
+		os.Exit(1)
+	}
+	config.SetKey("kube-config-path", kubeConfigPath)
+
+	service := &grpc.Service{}
+	_ = config.Server(&service)
+
+	service.Handler = consul.New(config, log)
+	service.Channel = make(chan interface{}, 100)
+	service.StartedAt = time.Now()
+	log.Info(fmt.Sprintf("%s starting on port: %s", service.Name, service.Port))
+	err = grpc.Start(service, nil)
+	if err != nil {
+		log.Err(errors.ErrGrpcServer, "adapter crashed on startup")
+		os.Exit(1)
+	}
 }

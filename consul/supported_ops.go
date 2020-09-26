@@ -15,48 +15,49 @@
 //Package consul ...
 package consul
 
-import "github.com/layer5io/meshery-consul/meshes"
-
-type supportedOperation struct {
-	// a friendly name
-	name string
-	// the template file name
-	templateName string
-
-	opType meshes.OpCategory
-}
-
-const (
-	customOpCommand        = "custom"
-	installConsulCommand   = "consul_install"
-	installBookInfoCommand = "install_book_info"
-	installHTTPBinCommand  = "install_http_bin"
-	installImageHubCommand = "install_image_hub"
-)
-
-var supportedOps = map[string]supportedOperation{
-	customOpCommand: {
-		name:   "Custom YAML",
-		opType: meshes.OpCategory_CUSTOM,
-	},
-	installConsulCommand: {
-		name:         "Consul Connect: unsecured, 1 server, suitable for local exploration",
-		templateName: "consul.yaml",
-		opType:       meshes.OpCategory_INSTALL,
-	},
-	installBookInfoCommand: {
-		name:         "Istio Book Info Application",
-		templateName: "bookinfo.yaml",
-		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
-	},
-	installHTTPBinCommand: {
-		name:         "HTTPbin Application",
-		templateName: "httpbin-consul.yaml",
-		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
-	},
-	installImageHubCommand: {
-		name:         "Image Hub Application",
-		templateName: "image-hub.yaml",
-		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
-	},
-}
+//
+//import "github.com/layer5io/meshery-consul/meshes"
+//
+//type supportedOperation struct {
+//	// a friendly name
+//	name string
+//	// the template file name
+//	templateName string
+//
+//	opType meshes.OpCategory
+//}
+//
+//const (
+//	customOpCommand        = "custom"
+//	installConsulCommand   = "consul_install"
+//	installBookInfoCommand = "install_book_info"
+//	installHTTPBinCommand  = "install_http_bin"
+//	installImageHubCommand = "install_image_hub"
+//)
+//
+//var supportedOps = map[string]supportedOperation{
+//	customOpCommand: {
+//		name:   "Custom YAML",
+//		opType: meshes.OpCategory_CUSTOM,
+//	},
+//	installConsulCommand: {
+//		name:         "Consul Connect: unsecured, 1 server, suitable for local exploration",
+//		templateName: "consul.yaml",
+//		opType:       meshes.OpCategory_INSTALL,
+//	},
+//	installBookInfoCommand: {
+//		name:         "Istio Book Info Application",
+//		templateName: "bookinfo.yaml",
+//		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
+//	},
+//	installHTTPBinCommand: {
+//		name:         "HTTPbin Application",
+//		templateName: "httpbin-consul.yaml",
+//		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
+//	},
+//	installImageHubCommand: {
+//		name:         "Image Hub Application",
+//		templateName: "image-hub.yaml",
+//		opType:       meshes.OpCategory_SAMPLE_APPLICATION,
+//	},
+//}
