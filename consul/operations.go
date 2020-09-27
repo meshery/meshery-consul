@@ -31,18 +31,15 @@ func (h *ConsulAdapter) ApplyOperation(ctx context.Context, op string, id string
 	case config.CustomOpCommand:
 		h.StreamErr(e, adapter.ErrOpInvalid)
 	case config.InstallConsulCommand:
-		go func(hh *ConsulAdapter, ee *adapter.Event) {
-			if status, err := hh.installConsul(doDelete); err != nil {
-				ee.Summary = fmt.Sprintf("Error while %s Consul service mesh", status)
-				ee.Details = err.Error()
-				hh.StreamErr(ee, err)
-				return
-			}
-			ee.Summary = fmt.Sprintf("Consul service mesh %s successfully", status)
-			ee.Details = fmt.Sprintf("The Consul service mesh is now %s.", status)
-			hh.StreamInfo(ee)
-		}(h, e)
-		h.StreamErr(e, adapter.ErrOpInvalid)
+		if status, err := h.installConsul(doDelete); err != nil {
+			e.Summary = fmt.Sprintf("Error while %s Consul service mesh", status)
+			e.Details = err.Error()
+			h.StreamErr(e, err)
+			return err
+		}
+		e.Summary = fmt.Sprintf("Consul service mesh %s successfully", status)
+		e.Details = fmt.Sprintf("The Consul service mesh is now %s.", status)
+		h.StreamInfo(e)
 	case config.InstallHTTPBinCommand:
 		h.StreamErr(e, adapter.ErrOpInvalid)
 	case config.InstallImageHubCommand:

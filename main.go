@@ -40,7 +40,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	config, err := config.New(configProvider, config.ServerDefaults, config.MeshDefaults, config.ViperDefaults, operations.Operations)
+	config, err := config.New(configProvider, config.ServerDefaults, config.MeshSpecDefaults, config.MeshInstanceDefaults, config.ViperDefaults, operations.Operations)
 	if err != nil {
 		log.Err("Config Init Failed", err.Error())
 		os.Exit(1)

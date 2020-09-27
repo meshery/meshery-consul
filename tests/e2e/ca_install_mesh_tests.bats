@@ -14,8 +14,10 @@ EOT
 }
 
 @test "client instance should be created" {
-  run bash -c "echo '$CREATE_MESH_REQ_MSG' | grpcurl --plaintext -d @ $MESHERY_ADAPTER_ADDR:10002 meshes.MeshService.CreateMeshInstance"
+  run bash -c "echo '$CREATE_MESH_REQ_MSG' | grpcurl --plaintext -d @ $MESHERY_ADAPTER_ADDR:10002 meshes.MeshService.CreateMeshInstance | jq ."
   [ "$status" -eq 0 ]
+  # this operation returns an empty JSON map. an error will not return a JSON object.
+  [[ $(echo $output | jq length ) = "0" ]]
 }
 
 @test "consul_install should be successful" {
@@ -26,12 +28,15 @@ EOT
   "username": "",
   "customBody": "",
   "deleteOp": false,
-  "operationId": ""
+  "operationId": "testid"
 }
 EOT
 )
   run bash -c "echo '$INSTALL_CONSUL' | grpcurl --plaintext -d @ $MESHERY_ADAPTER_ADDR:10002 meshes.MeshService.ApplyOperation"
   [ "$status" -eq 0 ]
+  # This operation returns a JSON map if successful. An error doesn't return a JSON object, unless the the implementation in
+  # api/grpc/handlers.go:ApplyOperation is changed (see TODO there).
+  [[ $(echo $output | jq -j ".operationId") = "testid" ]]
 }
 
 @test "deployment/consul-consul-connect-injector-webhook-deployment should be ready" {

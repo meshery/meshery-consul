@@ -1,16 +1,18 @@
 package consul
 
-import "github.com/mgfeller/common-adapter-library/adapter"
+import (
+	"errors"
+	"github.com/mgfeller/common-adapter-library/adapter"
+)
 
 type MeshInstance struct{}
 
 func (m *MeshInstance) applyConsulUsingManifest(doDelete bool) error {
-
-	return nil
+	return errors.New("not implemented yet")
 }
 
 func (h *ConsulAdapter) installConsul(doDelete bool) (string, error) {
-	status := "installing"
+	status := "installing" // TODO: should be type/enum defined in the common adapter library
 
 	if doDelete {
 		status = "removing"
