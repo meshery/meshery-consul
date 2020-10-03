@@ -3,13 +3,13 @@ package consul
 import (
 	"context"
 	"fmt"
+
 	"github.com/layer5io/meshery-consul/internal/config"
 	"github.com/mgfeller/common-adapter-library/adapter"
 )
 
-func (h *ConsulAdapter) ApplyOperation(ctx context.Context, op string, id string, doDelete bool) error {
-
-	operations := make(adapter.Operations, 0)
+func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationRequest) error {
+	operations := make(adapter.Operations)
 	err := h.Config.Operations(&operations)
 	if err != nil {
 		return err
@@ -17,21 +17,28 @@ func (h *ConsulAdapter) ApplyOperation(ctx context.Context, op string, id string
 
 	status := "deploying"
 	e := &adapter.Event{
-		Operationid: id,
+		Operationid: request.OperationID,
 		Summary:     "Deploying",
 		Details:     "None",
 	}
 
-	if doDelete {
+	if request.IsDeleteOperation {
 		status = "removing"
 		e.Summary = "Removing"
 	}
 
-	switch op {
+	if err := h.CreateNamespace(request.IsDeleteOperation, request.Namespace); err != nil {
+		e.Summary = "Error while creating namespace"
+		e.Details = err.Error()
+		h.StreamErr(e, err)
+		return err
+	}
+
+	switch request.OperationName {
 	case config.CustomOpCommand:
 		h.StreamErr(e, adapter.ErrOpInvalid)
 	case config.InstallConsulCommand:
-		if status, err := h.installConsul(doDelete); err != nil {
+		if status, err := h.installConsul(request.IsDeleteOperation); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s Consul service mesh", status)
 			e.Details = err.Error()
 			h.StreamErr(e, err)

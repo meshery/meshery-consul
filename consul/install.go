@@ -2,6 +2,7 @@ package consul
 
 import (
 	"errors"
+
 	"github.com/mgfeller/common-adapter-library/adapter"
 )
 
@@ -11,7 +12,7 @@ func (m *MeshInstance) applyConsulUsingManifest(doDelete bool) error {
 	return errors.New("not implemented yet")
 }
 
-func (h *ConsulAdapter) installConsul(doDelete bool) (string, error) {
+func (h *Handler) installConsul(doDelete bool) (string, error) {
 	status := "installing" // TODO: should be type/enum defined in the common adapter library
 
 	if doDelete {

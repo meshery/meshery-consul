@@ -6,12 +6,12 @@ import (
 	"github.com/mgfeller/common-adapter-library/config"
 )
 
-type ConsulAdapter struct {
-	adapter.BaseAdapter
+type Handler struct {
+	adapter.BaseHandler
 }
 
 func New(config config.Handler, log logger.Handler) adapter.Handler {
-	return &ConsulAdapter{
-		adapter.BaseAdapter{Config: config, Log: log},
+	return &Handler{
+		adapter.BaseHandler{Config: config, Log: log},
 	}
 }

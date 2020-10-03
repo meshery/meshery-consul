@@ -16,6 +16,9 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/layer5io/gokit/errors"
 	"github.com/layer5io/gokit/logger"
 	"github.com/layer5io/gokit/utils"
@@ -23,8 +26,6 @@ import (
 	"github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshery-consul/internal/operations"
 	"github.com/mgfeller/common-adapter-library/api/grpc"
-	"os"
-	"time"
 )
 
 var (
