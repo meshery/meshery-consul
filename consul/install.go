@@ -1,6 +1,7 @@
 package consul
 
 import (
+	"fmt"
 	"path"
 
 	"github.com/layer5io/meshery-consul/internal/config"
@@ -10,14 +11,14 @@ import (
 
 type MeshInstance struct{}
 
-func (m *MeshInstance) applyConsulUsingManifest(request adapter.OperationRequest, operation *adapter.Operation, h *Handler) error {
-	err := h.ApplyKubernetesManifest(request, *operation, map[string]string{},
+func (m *MeshInstance) applyUsingManifest(request adapter.OperationRequest, operation *adapter.Operation, h *Handler) error {
+	err := h.ApplyKubernetesManifest(request, *operation, map[string]string{"namespace": request.Namespace},
 		path.Join("consul", "config_templates", operation.Properties[config.OperationTemplateNameKey]))
 	return err
 }
 
-func (h *Handler) applyConsulUsingManifest(request adapter.OperationRequest, operation *adapter.Operation) (string, error) {
-	status := "installing" // TODO: should be type/enum defined in the common adapter library
+func (h *Handler) applyUsingManifest(request adapter.OperationRequest, operation *adapter.Operation) (string, error) {
+	status := "installing" // TODO: should be enum defined in the common adapter library
 
 	if request.IsDeleteOperation {
 		status = "removing"
@@ -30,10 +31,10 @@ func (h *Handler) applyConsulUsingManifest(request adapter.OperationRequest, ope
 		return status, adapter.ErrMeshConfig(err)
 	}
 
-	h.Log.Info("Installing Consul")
-	err = meshInstance.applyConsulUsingManifest(request, operation, h)
+	h.Log.Info(fmt.Sprintf("%s %s", status, operation.Properties[config.OperationDescriptionKey]))
+	err = meshInstance.applyUsingManifest(request, operation, h)
 	if err != nil {
-		h.Log.Err("Consul installation failed", adapter.ErrInstallMesh(err).Error())
+		h.Log.Err(fmt.Sprintf("Error: %s %s failed", status, operation.Properties[config.OperationDescriptionKey]), adapter.ErrInstallMesh(err).Error())
 		return status, adapter.ErrInstallMesh(err)
 	}
 

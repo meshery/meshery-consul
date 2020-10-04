@@ -2,7 +2,6 @@ package consul
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/layer5io/meshery-consul/internal/config"
@@ -38,31 +37,27 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 	operation, ok := operations[request.OperationName]
 	if !ok {
 		e.Summary = "Error unknown operation name"
-		err = errors.New(e.Summary)
+		err = adapter.ErrOpInvalid
 		e.Details = err.Error()
 		h.StreamErr(e, err)
 		return err
 	}
 
 	switch request.OperationName {
-	case config.CustomOpCommand:
-		h.StreamErr(e, adapter.ErrOpInvalid)
-	case config.InstallConsulCommand:
-		if status, err := h.applyConsulUsingManifest(request, operation); err != nil {
-			e.Summary = fmt.Sprintf("Error while %s Consul service mesh", status)
+	case config.CustomOpCommand, // TODO: implement custom op and test for it
+		config.InstallConsulCommand,
+		config.InstallHTTPBinCommand,
+		config.InstallImageHubCommand,
+		config.InstallBookInfoCommand:
+		if status, err := h.applyUsingManifest(request, operation); err != nil {
+			e.Summary = fmt.Sprintf("Error while %s %s", status, operation.Properties[config.OperationDescriptionKey])
 			e.Details = err.Error()
 			h.StreamErr(e, err)
 			return err
 		}
-		e.Summary = fmt.Sprintf("Consul service mesh %s successfully", status)
-		e.Details = fmt.Sprintf("The Consul service mesh is now %s.", status)
+		e.Summary = fmt.Sprintf("%s %s successfully", operation.Properties[config.OperationDescriptionKey], status)
+		e.Details = fmt.Sprintf("%s is now %s.", operation.Properties[config.OperationDescriptionKey], status)
 		h.StreamInfo(e)
-	case config.InstallHTTPBinCommand:
-		h.StreamErr(e, adapter.ErrOpInvalid)
-	case config.InstallImageHubCommand:
-		h.StreamErr(e, adapter.ErrOpInvalid)
-	case config.InstallBookInfoCommand:
-		h.StreamErr(e, adapter.ErrOpInvalid)
 	default:
 		h.StreamErr(e, adapter.ErrOpInvalid)
 	}
