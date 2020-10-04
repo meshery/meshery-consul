@@ -11,41 +11,41 @@ var (
 		config.InstallConsulCommand: &adapter.Operation{
 			Type: int32(meshes.OpCategory_INSTALL),
 			Properties: map[string]string{
-				"description":  "Consul Connect: unsecured, 1 server, suitable for local exploration",
-				"version":      "1.8.2",
-				"templateName": "consul.yaml",
+				config.OperationDescriptionKey:  "Consul Connect: unsecured, 1 server, suitable for local exploration",
+				config.OperationVersionKey:      "1.8.2",
+				config.OperationTemplateNameKey: "consul.yaml",
 			},
 		},
 		config.InstallBookInfoCommand: &adapter.Operation{
 			Type: int32(meshes.OpCategory_SAMPLE_APPLICATION),
 			Properties: map[string]string{
-				"description":  "Istio Book Info Application",
-				"version":      "",
-				"templateName": "bookinfo.yaml",
+				config.OperationDescriptionKey:  "Istio Book Info Application",
+				config.OperationVersionKey:      "",
+				config.OperationTemplateNameKey: "bookinfo.yaml",
 			},
 		},
 		config.InstallHTTPBinCommand: &adapter.Operation{
 			Type: int32(meshes.OpCategory_SAMPLE_APPLICATION),
 			Properties: map[string]string{
-				"description":  "HTTPbin Application",
-				"version":      "",
-				"templateName": "httpbin-consul.yaml",
+				config.OperationDescriptionKey:  "HTTPbin Application",
+				config.OperationVersionKey:      "",
+				config.OperationTemplateNameKey: "httpbin-consul.yaml",
 			},
 		},
 		config.InstallImageHubCommand: &adapter.Operation{
 			Type: int32(meshes.OpCategory_SAMPLE_APPLICATION),
 			Properties: map[string]string{
-				"description":  "Image Hub Application",
-				"version":      "",
-				"templateName": "image-hub.yaml",
+				config.OperationDescriptionKey:  "Image Hub Application",
+				config.OperationVersionKey:      "",
+				config.OperationTemplateNameKey: "image-hub.yaml",
 			},
 		},
 		config.CustomOpCommand: &adapter.Operation{
 			Type: int32(meshes.OpCategory_CUSTOM),
 			Properties: map[string]string{
-				"description":  "Custom YAML",
-				"version":      "",
-				"templateName": "image-hub.yaml",
+				config.OperationDescriptionKey:  "Custom YAML",
+				config.OperationVersionKey:      "",
+				config.OperationTemplateNameKey: "image-hub.yaml",
 			},
 		},
 	}

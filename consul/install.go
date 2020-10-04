@@ -1,21 +1,25 @@
 package consul
 
 import (
-	"errors"
+	"path"
+
+	"github.com/layer5io/meshery-consul/internal/config"
 
 	"github.com/mgfeller/common-adapter-library/adapter"
 )
 
 type MeshInstance struct{}
 
-func (m *MeshInstance) applyConsulUsingManifest(doDelete bool) error {
-	return errors.New("not implemented yet")
+func (m *MeshInstance) applyConsulUsingManifest(request adapter.OperationRequest, operation *adapter.Operation, h *Handler) error {
+	err := h.ApplyKubernetesManifest(request, *operation, map[string]string{},
+		path.Join("consul", "config_templates", operation.Properties[config.OperationTemplateNameKey]))
+	return err
 }
 
-func (h *Handler) installConsul(doDelete bool) (string, error) {
+func (h *Handler) applyConsulUsingManifest(request adapter.OperationRequest, operation *adapter.Operation) (string, error) {
 	status := "installing" // TODO: should be type/enum defined in the common adapter library
 
-	if doDelete {
+	if request.IsDeleteOperation {
 		status = "removing"
 	}
 
@@ -27,7 +31,7 @@ func (h *Handler) installConsul(doDelete bool) (string, error) {
 	}
 
 	h.Log.Info("Installing Consul")
-	err = meshInstance.applyConsulUsingManifest(doDelete)
+	err = meshInstance.applyConsulUsingManifest(request, operation, h)
 	if err != nil {
 		h.Log.Err("Consul installation failed", adapter.ErrInstallMesh(err).Error())
 		return status, adapter.ErrInstallMesh(err)

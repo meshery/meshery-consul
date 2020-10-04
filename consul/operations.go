@@ -2,6 +2,7 @@ package consul
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/layer5io/meshery-consul/internal/config"
@@ -34,11 +35,20 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 		return err
 	}
 
+	operation, ok := operations[request.OperationName]
+	if !ok {
+		e.Summary = "Error unknown operation name"
+		err = errors.New(e.Summary)
+		e.Details = err.Error()
+		h.StreamErr(e, err)
+		return err
+	}
+
 	switch request.OperationName {
 	case config.CustomOpCommand:
 		h.StreamErr(e, adapter.ErrOpInvalid)
 	case config.InstallConsulCommand:
-		if status, err := h.installConsul(request.IsDeleteOperation); err != nil {
+		if status, err := h.applyConsulUsingManifest(request, operation); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s Consul service mesh", status)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
