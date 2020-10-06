@@ -1,9 +1,9 @@
 package operations
 
 import (
+	"github.com/layer5io/meshery-adapter-library/adapter"
+	"github.com/layer5io/meshery-adapter-library/meshes"
 	"github.com/layer5io/meshery-consul/internal/config"
-	"github.com/mgfeller/common-adapter-library/adapter"
-	"github.com/mgfeller/common-adapter-library/meshes"
 )
 
 var (

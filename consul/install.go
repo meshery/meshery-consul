@@ -6,7 +6,7 @@ import (
 
 	"github.com/layer5io/meshery-consul/internal/config"
 
-	"github.com/mgfeller/common-adapter-library/adapter"
+	"github.com/layer5io/meshery-adapter-library/adapter"
 )
 
 type MeshInstance struct{}

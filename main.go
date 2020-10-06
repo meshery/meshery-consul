@@ -22,10 +22,10 @@ import (
 	"github.com/layer5io/gokit/errors"
 	"github.com/layer5io/gokit/logger"
 	"github.com/layer5io/gokit/utils"
+	"github.com/layer5io/meshery-adapter-library/api/grpc"
 	"github.com/layer5io/meshery-consul/consul"
 	"github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshery-consul/internal/operations"
-	"github.com/mgfeller/common-adapter-library/api/grpc"
 )
 
 var (

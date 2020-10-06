@@ -1,9 +1,9 @@
 package config
 
 import (
-	"github.com/mgfeller/common-adapter-library/adapter"
-	"github.com/mgfeller/common-adapter-library/config"
-	"github.com/mgfeller/common-adapter-library/configprovider"
+	"github.com/layer5io/meshery-adapter-library/adapter"
+	"github.com/layer5io/meshery-adapter-library/config"
+	"github.com/layer5io/meshery-adapter-library/configprovider"
 )
 
 func New(name string, serverConfig map[string]string, meshSpec map[string]string, meshInstance map[string]string, providerConfig map[string]string, operations adapter.Operations) (config.Handler, error) {
