@@ -10,4 +10,5 @@ const (
 	OperationDescriptionKey  = "description"
 	OperationVersionKey      = "version"
 	OperationTemplateNameKey = "templateName"
+	OperationServiceNameKey  = "serviceName"
 )

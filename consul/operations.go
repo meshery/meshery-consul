@@ -44,19 +44,38 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 	}
 
 	switch request.OperationName {
-	case config.CustomOpCommand, // TODO: implement custom op and test for it
+	case config.CustomOpCommand,
 		config.InstallConsulCommand,
 		config.InstallHTTPBinCommand,
 		config.InstallImageHubCommand,
 		config.InstallBookInfoCommand:
+
+		opDesc := operation.Properties[config.OperationDescriptionKey]
 		if status, err := h.applyUsingManifest(request, operation); err != nil {
-			e.Summary = fmt.Sprintf("Error while %s %s", status, operation.Properties[config.OperationDescriptionKey])
+			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
 			return err
 		}
-		e.Summary = fmt.Sprintf("%s %s successfully", operation.Properties[config.OperationDescriptionKey], status)
-		e.Details = fmt.Sprintf("%s is now %s.", operation.Properties[config.OperationDescriptionKey], status)
+
+		e.Summary = fmt.Sprintf("%s %s successfully.", opDesc, status)
+		e.Details = fmt.Sprintf("%s is now %s.", opDesc, status)
+
+		if !request.IsDeleteOperation {
+			if svc, ok := operation.Properties[config.OperationServiceNameKey]; ok && svc != "" {
+				portMsg, _, err1 := h.getServicePorts(request, operation)
+				if err1 != nil {
+					h.StreamErr(&adapter.Event{
+						Operationid: request.OperationID,
+						Summary:     fmt.Sprintf("Unable to retrieve port(s) info for the service %s.", operation.Properties[config.OperationServiceNameKey]),
+						Details:     err1.Error(),
+					}, err1)
+				} else {
+					e.Summary = fmt.Sprintf("%s %s", e.Summary, portMsg)
+					e.Details = fmt.Sprintf("%s %s", e.Details, portMsg)
+				}
+			}
+		}
 		h.StreamInfo(e)
 	default:
 		h.StreamErr(e, adapter.ErrOpInvalid)

@@ -10,13 +10,13 @@ var (
 
 	MeshSpecDefaults = map[string]string{
 		"name":    "Consul",
-		"status":  "not installed", // TODO: status should be an enum
+		"status":  "not installed",
 		"version": "1.8.2",
 	}
 
 	MeshInstanceDefaults = map[string]string{
 		"name":    "Consul",
-		"status":  "not installed", // TODO: status should be an enum
+		"status":  "not installed",
 		"version": "1.8.2",
 	}
 

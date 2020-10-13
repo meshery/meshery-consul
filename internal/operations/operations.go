@@ -22,6 +22,7 @@ var (
 				config.OperationDescriptionKey:  "Istio Book Info Application",
 				config.OperationVersionKey:      "",
 				config.OperationTemplateNameKey: "bookinfo.yaml",
+				config.OperationServiceNameKey:  "productpage",
 			},
 		},
 		config.InstallHTTPBinCommand: &adapter.Operation{
@@ -30,6 +31,7 @@ var (
 				config.OperationDescriptionKey:  "HTTPbin Application",
 				config.OperationVersionKey:      "",
 				config.OperationTemplateNameKey: "httpbin-consul.yaml",
+				config.OperationServiceNameKey:  "httpbin",
 			},
 		},
 		config.InstallImageHubCommand: &adapter.Operation{
@@ -38,6 +40,7 @@ var (
 				config.OperationDescriptionKey:  "Image Hub Application",
 				config.OperationVersionKey:      "",
 				config.OperationTemplateNameKey: "image-hub.yaml",
+				config.OperationServiceNameKey:  "ingess",
 			},
 		},
 		config.CustomOpCommand: &adapter.Operation{
