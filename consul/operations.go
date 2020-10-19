@@ -62,7 +62,7 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 		e.Details = fmt.Sprintf("%s is now %s.", opDesc, status)
 
 		if !request.IsDeleteOperation {
-			if svc, ok := operation.Properties[config.OperationServiceNameKey]; ok && svc != "" {
+			if svc, ok := operation.Properties[config.OperationServiceNameKey]; ok && len(svc) > 0 {
 				portMsg, _, err1 := h.getServicePorts(request, operation)
 				if err1 != nil {
 					h.StreamErr(&adapter.Event{
