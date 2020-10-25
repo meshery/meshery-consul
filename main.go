@@ -28,9 +28,12 @@ import (
 	"github.com/layer5io/meshery-consul/internal/operations"
 )
 
-var (
+const (
 	serviceName    = "consul-adaptor"
 	configProvider = "viper"
+)
+
+var (
 	kubeConfigPath = fmt.Sprintf("%s/.kube/meshery.config", utils.GetHome())
 )
 
@@ -41,17 +44,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	config, err := config.New(configProvider, config.ServerDefaults, config.MeshSpecDefaults, config.MeshInstanceDefaults, config.ViperDefaults, operations.Operations)
+	cfg, err := config.New(configProvider, config.ServerDefaults, config.MeshSpecDefaults, config.MeshInstanceDefaults, config.ViperDefaults, operations.Operations)
 	if err != nil {
 		log.Err("Config Init Failed", err.Error())
 		os.Exit(1)
 	}
-	config.SetKey("kube-config-path", kubeConfigPath)
+	cfg.SetKey("kube-config-path", kubeConfigPath)
 
 	service := &grpc.Service{}
-	_ = config.Server(&service)
+	_ = cfg.Server(&service)
 
-	service.Handler = consul.New(config, log)
+	service.Handler = consul.New(cfg, log)
 	service.Channel = make(chan interface{}, 100)
 	service.StartedAt = time.Now()
 	log.Info(fmt.Sprintf("%s starting on port: %s", service.Name, service.Port))

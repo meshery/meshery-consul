@@ -1,5 +1,9 @@
 package config
 
+import (
+	"github.com/layer5io/meshery-consul/internal/status"
+)
+
 var (
 	ServerDefaults = map[string]string{
 		"name":     "consul-adapter",
@@ -10,13 +14,13 @@ var (
 
 	MeshSpecDefaults = map[string]string{
 		"name":    "Consul",
-		"status":  "not installed",
+		"status":  status.NotInstalled,
 		"version": "1.8.2",
 	}
 
 	MeshInstanceDefaults = map[string]string{
 		"name":    "Consul",
-		"status":  "not installed",
+		"status":  status.NotInstalled,
 		"version": "1.8.2",
 	}
 

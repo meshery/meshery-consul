@@ -6,6 +6,7 @@ import (
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-consul/internal/config"
+	opstatus "github.com/layer5io/meshery-consul/internal/status"
 )
 
 func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationRequest) error {
@@ -15,7 +16,7 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 		return err
 	}
 
-	status := "deploying"
+	status := opstatus.Deploying
 	e := &adapter.Event{
 		Operationid: request.OperationID,
 		Summary:     "Deploying",
@@ -23,7 +24,7 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 	}
 
 	if request.IsDeleteOperation {
-		status = "removing"
+		status = opstatus.Removing
 		e.Summary = "Removing"
 	}
 
@@ -51,7 +52,7 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 		config.InstallBookInfoCommand:
 
 		opDesc := operation.Properties[config.OperationDescriptionKey]
-		if status, err := h.applyUsingManifest(request, operation); err != nil {
+		if status, err := h.applyUsingManifest(request, *operation); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
@@ -63,7 +64,7 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 
 		if !request.IsDeleteOperation {
 			if svc, ok := operation.Properties[config.OperationServiceNameKey]; ok && len(svc) > 0 {
-				portMsg, _, err1 := h.getServicePorts(request, operation)
+				portMsg, _, err1 := h.getServicePorts(request, *operation)
 				if err1 != nil {
 					h.StreamErr(&adapter.Event{
 						Operationid: request.OperationID,

@@ -4,30 +4,28 @@ import (
 	"fmt"
 	"path"
 
-	"github.com/layer5io/gokit/errors"
-
-	"github.com/layer5io/meshery-consul/internal/config"
-
 	"github.com/layer5io/meshery-adapter-library/adapter"
+	"github.com/layer5io/meshery-consul/internal/config"
+	opstatus "github.com/layer5io/meshery-consul/internal/status"
 )
 
 type MeshInstance struct{}
 
-func (m *MeshInstance) applyUsingManifest(request adapter.OperationRequest, operation *adapter.Operation, h *Handler) error {
-	err := h.ApplyKubernetesManifest(request, *operation, map[string]string{"namespace": request.Namespace},
+func (m *MeshInstance) applyUsingManifest(request adapter.OperationRequest, operation adapter.Operation, h *Handler) error {
+	err := h.ApplyKubernetesManifest(request, operation, map[string]string{"namespace": request.Namespace},
 		path.Join("consul", "config_templates", operation.Properties[config.OperationTemplateNameKey]))
 	return err
 }
 
-func (m *MeshInstance) getServicePorts(request adapter.OperationRequest, operation *adapter.Operation, h *Handler) ([]int64, error) {
+func (m *MeshInstance) getServicePorts(request adapter.OperationRequest, operation adapter.Operation, h *Handler) ([]int64, error) {
 	return h.GetServicePorts(operation.Properties[config.OperationServiceNameKey], request.Namespace)
 }
 
-func (h *Handler) applyUsingManifest(request adapter.OperationRequest, operation *adapter.Operation) (string, error) {
-	status := "installing"
+func (h *Handler) applyUsingManifest(request adapter.OperationRequest, operation adapter.Operation) (string, error) {
+	status := opstatus.Installing
 
 	if request.IsDeleteOperation {
-		status = "removing"
+		status = opstatus.Removing
 	}
 
 	meshInstance := &MeshInstance{}
@@ -44,10 +42,10 @@ func (h *Handler) applyUsingManifest(request adapter.OperationRequest, operation
 		return status, adapter.ErrInstallMesh(err)
 	}
 
-	return "deployed", nil
+	return opstatus.Deployed, nil
 }
 
-func (h *Handler) getServicePorts(request adapter.OperationRequest, operation *adapter.Operation) (string, []int64, error) {
+func (h *Handler) getServicePorts(request adapter.OperationRequest, operation adapter.Operation) (string, []int64, error) {
 	meshInstance := &MeshInstance{}
 
 	err := h.Config.MeshInstance(meshInstance)
@@ -62,9 +60,9 @@ func (h *Handler) getServicePorts(request adapter.OperationRequest, operation *a
 	var ports []int64
 	ports, err = meshInstance.getServicePorts(request, operation, h)
 	if err != nil {
-		error := errors.New("0000", fmt.Sprintf("Unable to retrieve information from the mesh: %s.", err.Error()))
-		h.Log.Err(fmt.Sprintf("Retreiving port(s) for service %s failed.", svc), error.Error())
-		return "", nil, error
+		err2 := ErrGetInfo(err)
+		h.Log.Err(fmt.Sprintf("Retreiving port(s) for service %s failed.", svc), err2.Error())
+		return "", nil, err2
 	}
 
 	var portMsg string
