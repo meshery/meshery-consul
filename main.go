@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	serviceName    = "consul-adaptor"
+	serviceName    = "consul-adapter"
 	configProvider = "viper"
 )
 
