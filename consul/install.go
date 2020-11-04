@@ -5,8 +5,8 @@ import (
 	"path"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
+	opstatus "github.com/layer5io/meshery-adapter-library/status"
 	"github.com/layer5io/meshery-consul/internal/config"
-	opstatus "github.com/layer5io/meshery-consul/internal/status"
 )
 
 type MeshInstance struct{}
@@ -30,7 +30,7 @@ func (h *Handler) applyUsingManifest(request adapter.OperationRequest, operation
 
 	meshInstance := &MeshInstance{}
 
-	err := h.Config.MeshInstance(meshInstance)
+	err := h.Config.GetObject(adapter.MeshInstanceKey, meshInstance)
 	if err != nil {
 		return status, adapter.ErrMeshConfig(err)
 	}
@@ -38,7 +38,7 @@ func (h *Handler) applyUsingManifest(request adapter.OperationRequest, operation
 	h.Log.Info(fmt.Sprintf("%s %s", status, operation.Properties[config.OperationDescriptionKey]))
 	err = meshInstance.applyUsingManifest(request, operation, h)
 	if err != nil {
-		h.Log.Err(fmt.Sprintf("%s %s failed", status, operation.Properties[config.OperationDescriptionKey]), adapter.ErrInstallMesh(err).Error())
+		h.Log.Error(adapter.ErrInstallMesh(err))
 		return status, adapter.ErrInstallMesh(err)
 	}
 
@@ -48,7 +48,7 @@ func (h *Handler) applyUsingManifest(request adapter.OperationRequest, operation
 func (h *Handler) getServicePorts(request adapter.OperationRequest, operation adapter.Operation) (string, []int64, error) {
 	meshInstance := &MeshInstance{}
 
-	err := h.Config.MeshInstance(meshInstance)
+	err := h.Config.GetObject(adapter.MeshInstanceKey, meshInstance)
 	if err != nil {
 		return "", nil, adapter.ErrMeshConfig(err)
 	}
@@ -61,7 +61,7 @@ func (h *Handler) getServicePorts(request adapter.OperationRequest, operation ad
 	ports, err = meshInstance.getServicePorts(request, operation, h)
 	if err != nil {
 		err2 := ErrGetInfo(err)
-		h.Log.Err(fmt.Sprintf("Retreiving port(s) for service %s failed.", svc), err2.Error())
+		h.Log.Error(err2)
 		return "", nil, err2
 	}
 

@@ -17,7 +17,7 @@ package consul
 import (
 	"fmt"
 
-	"github.com/layer5io/gokit/errors"
+	"github.com/layer5io/meshkit/errors"
 )
 
 // This error code should probably be moved to https://github.com/layer5io/meshkit/blob/master/errors/codes.go.
@@ -27,5 +27,5 @@ const (
 
 // This function should probably be moved to https://github.com/layer5io/meshery-adapter-library/blob/master/adapter/error.go.
 func ErrGetInfo(err error) error {
-	return errors.New(ErrGetInfoCode, fmt.Sprintf("Unable to retrieve information from the mesh: %s", err.Error()))
+	return errors.NewDefault(ErrGetInfoCode, fmt.Sprintf("Unable to retrieve information from the mesh: %s", err.Error()))
 }

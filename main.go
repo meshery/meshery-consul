@@ -19,18 +19,19 @@ import (
 	"os"
 	"time"
 
-	"github.com/layer5io/gokit/errors"
-	"github.com/layer5io/gokit/logger"
-	"github.com/layer5io/gokit/utils"
+	"github.com/layer5io/meshery-adapter-library/adapter"
+	"github.com/layer5io/meshery-adapter-library/config/provider"
+	"github.com/layer5io/meshery-consul/internal/operations"
+
 	"github.com/layer5io/meshery-adapter-library/api/grpc"
 	"github.com/layer5io/meshery-consul/consul"
 	"github.com/layer5io/meshery-consul/internal/config"
-	"github.com/layer5io/meshery-consul/internal/operations"
+	"github.com/layer5io/meshkit/logger"
+	"github.com/layer5io/meshkit/utils"
 )
 
 const (
-	serviceName    = "consul-adapter"
-	configProvider = "viper"
+	serviceName = "consul-adapter"
 )
 
 var (
@@ -38,29 +39,36 @@ var (
 )
 
 func main() {
-	log, err := logger.New(serviceName)
+	log, err := logger.New(serviceName, logger.Options{Format: logger.JsonLogFormat, DebugLevel: false})
 	if err != nil {
 		fmt.Println("Logger Init Failed", err.Error())
 		os.Exit(1)
 	}
 
-	cfg, err := config.New(configProvider, config.ServerDefaults, config.MeshSpecDefaults, config.MeshInstanceDefaults, config.ViperDefaults, operations.Operations)
+	cfg, err := config.New(provider.Options{
+		ServerConfig:   config.ServerDefaults,
+		MeshSpec:       config.MeshSpecDefaults,
+		MeshInstance:   config.MeshInstanceDefaults,
+		ProviderConfig: config.ViperDefaults,
+		Operations:     operations.Operations,
+	},
+	)
+
 	if err != nil {
-		log.Err("Config Init Failed", err.Error())
+		log.Error(err)
 		os.Exit(1)
 	}
-	cfg.SetKey("kube-config-path", kubeConfigPath)
+	cfg.SetKey(adapter.KubeconfigPathKey, kubeConfigPath)
 
 	service := &grpc.Service{}
-	_ = cfg.Server(&service)
+	_ = cfg.GetObject(adapter.ServerKey, &service)
 
 	service.Handler = consul.New(cfg, log)
 	service.Channel = make(chan interface{}, 100)
 	service.StartedAt = time.Now()
-	log.Info(fmt.Sprintf("%s starting on port: %s", service.Name, service.Port))
 	err = grpc.Start(service, nil)
 	if err != nil {
-		log.Err(errors.ErrGrpcServer, "adapter crashed on startup")
+		log.Error(grpc.ErrGrpcServer(err))
 		os.Exit(1)
 	}
 }

@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
+	opstatus "github.com/layer5io/meshery-adapter-library/status"
 	"github.com/layer5io/meshery-consul/internal/config"
-	opstatus "github.com/layer5io/meshery-consul/internal/status"
 )
 
 func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationRequest) error {
 	operations := make(adapter.Operations)
-	err := h.Config.Operations(&operations)
+	err := h.Config.GetObject(adapter.OperationsKey, &operations)
 	if err != nil {
 		return err
 	}
