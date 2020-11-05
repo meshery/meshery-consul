@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/layer5io/meshery-consul/internal/status"
+	"github.com/layer5io/meshery-adapter-library/status"
 )
 
 var (
