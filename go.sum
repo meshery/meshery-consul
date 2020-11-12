@@ -493,6 +493,8 @@ github.com/layer5io/meshery-adapter-library v0.1.0 h1:X1eCFqjjRM6Ba7Xwj0LJdkX/PW
 github.com/layer5io/meshery-adapter-library v0.1.0/go.mod h1:WYauuGoHwDXmwwa+qBPSSONQ5lOR2OANrlHOGFtaULo=
 github.com/layer5io/meshkit v0.1.17 h1:8vdKSvTiil1fH5Jr3zhNPNPVapr4odg5T/UQieIHuKE=
 github.com/layer5io/meshkit v0.1.17/go.mod h1:njEbkByuOqttJpMO2yvSId3Mmg5kufAtsTgqEdRVmdo=
+github.com/layer5io/meshkit v0.1.18 h1:pkXltB+qooV1UZAntoKXIQFAS9te5lNgXsJdTIrz+cY=
+github.com/layer5io/meshkit v0.1.18/go.mod h1:njEbkByuOqttJpMO2yvSId3Mmg5kufAtsTgqEdRVmdo=
 github.com/lib/pq v1.0.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.2.0/go.mod h1:5WUZQaWbwv1U+lTReE5YruASi9Al49XbQIvNi/34Woo=
 github.com/lib/pq v1.7.0/go.mod h1:AlVN5x4E4T544tWzH6hKfbfQvm3HdbOxrmggDNAPY9o=
