@@ -6,6 +6,6 @@ replace github.com/kudobuilder/kuttl => github.com/layer5io/kuttl v0.4.1-0.20200
 
 require (
 	github.com/layer5io/meshery-adapter-library v0.1.3
-	github.com/layer5io/meshkit v0.1.18
+	github.com/layer5io/meshkit v0.1.25
 	google.golang.org/grpc v1.32.0 // indirect
 )
