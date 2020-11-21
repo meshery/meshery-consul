@@ -20,22 +20,17 @@ import (
 	"time"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
-	"github.com/layer5io/meshery-adapter-library/config/provider"
+	configprovider "github.com/layer5io/meshery-adapter-library/config/provider"
 	"github.com/layer5io/meshery-consul/internal/operations"
 
 	"github.com/layer5io/meshery-adapter-library/api/grpc"
 	"github.com/layer5io/meshery-consul/consul"
 	"github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshkit/logger"
-	"github.com/layer5io/meshkit/utils"
 )
 
 const (
 	serviceName = "consul-adapter"
-)
-
-var (
-	kubeConfigPath = fmt.Sprintf("%s/.kube/meshery.config", utils.GetHome())
 )
 
 func main() {
@@ -45,10 +40,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg, err := config.New(provider.Options{
+	cfg, err := config.New(configprovider.Options{
 		ServerConfig:   config.ServerDefaults,
 		MeshSpec:       config.MeshSpecDefaults,
-		MeshInstance:   config.MeshInstanceDefaults,
 		ProviderConfig: config.ViperDefaults,
 		Operations:     operations.Operations,
 	},
@@ -58,12 +52,20 @@ func main() {
 		log.Error(err)
 		os.Exit(1)
 	}
-	cfg.SetKey(adapter.KubeconfigPathKey, kubeConfigPath)
 
 	service := &grpc.Service{}
 	_ = cfg.GetObject(adapter.ServerKey, &service)
 
-	service.Handler = consul.New(cfg, log)
+	kubeCfg, err := config.New(configprovider.Options{
+		ProviderConfig: config.KubeConfigDefaults,
+	})
+
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
+
+	service.Handler = consul.New(cfg, log, kubeCfg)
 	service.Channel = make(chan interface{}, 100)
 	service.StartedAt = time.Now()
 	err = grpc.Start(service, nil)
