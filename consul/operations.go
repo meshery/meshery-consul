@@ -62,15 +62,6 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		return err
 	}
 
-	if !request.IsDeleteOperation {
-		if err := kubeClient.CreateNamespace(ctx, request.Namespace); err != nil {
-			e.Summary = "Error while creating namespace"
-			e.Details = err.Error()
-			h.StreamErr(e, err)
-			return err
-		}
-	}
-
 	switch request.OperationName {
 	case config.CustomOpCommand,
 		config.InstallConsulCommand,
