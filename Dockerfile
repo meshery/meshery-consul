@@ -1,4 +1,4 @@
-FROM golang:1.13 as bd
+FROM golang:1.15 as bd
 WORKDIR /github.com/layer5io/meshery-consul
 ADD . .
 RUN GOPROXY=direct GOSUMDB=off go build -ldflags="-w -s" -a -o /meshery-consul .
