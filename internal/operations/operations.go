@@ -33,29 +33,29 @@ var (
 		config.InstallBookInfoCommand: &adapter.Operation{
 			Type:                 int32(meshes.OpCategory_SAMPLE_APPLICATION),
 			Description:          "Istio Book Info Application",
-			Versions:             []adapter.Version{""},
+			Versions:             []adapter.Version{},
 			Templates:            []adapter.Template{"bookinfo.yaml"},
 			AdditionalProperties: map[string]string{config.OperationServiceNameKey: "productpage"},
 		},
 		config.InstallHTTPBinCommand: &adapter.Operation{
 			Type:                 int32(meshes.OpCategory_SAMPLE_APPLICATION),
 			Description:          "HTTPbin Application",
-			Versions:             []adapter.Version{""},
+			Versions:             []adapter.Version{},
 			Templates:            []adapter.Template{"httpbin-consul.yaml"},
 			AdditionalProperties: map[string]string{config.OperationServiceNameKey: "httpbin"},
 		},
 		config.InstallImageHubCommand: &adapter.Operation{
 			Type:                 int32(meshes.OpCategory_SAMPLE_APPLICATION),
 			Description:          "Image Hub Application",
-			Versions:             []adapter.Version{""},
+			Versions:             []adapter.Version{},
 			Templates:            []adapter.Template{"image-hub.yaml"},
 			AdditionalProperties: map[string]string{config.OperationServiceNameKey: "ingess"},
 		},
 		config.CustomOpCommand: &adapter.Operation{
 			Type:        int32(meshes.OpCategory_CUSTOM),
 			Description: "Custom YAML",
-			Versions:    []adapter.Version{""},
-			Templates:   []adapter.Template{"image-hub.yaml"},
+			Versions:    []adapter.Version{},
+			Templates:   []adapter.Template{},
 		},
 	}
 )
