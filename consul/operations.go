@@ -1,15 +1,31 @@
+// Copyright 2020 Layer5, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package consul
 
 import (
 	"context"
 	"fmt"
 
+	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
+
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	opstatus "github.com/layer5io/meshery-adapter-library/status"
 	"github.com/layer5io/meshery-consul/internal/config"
 )
 
-func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationRequest) error {
+func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRequest) error {
 	operations := make(adapter.Operations)
 	err := h.Config.GetObject(adapter.OperationsKey, &operations)
 	if err != nil {
@@ -28,17 +44,19 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 		e.Summary = "Removing"
 	}
 
-	if err := h.CreateNamespace(request.IsDeleteOperation, request.Namespace); err != nil {
-		e.Summary = "Error while creating namespace"
+	operation, ok := operations[request.OperationName]
+	if !ok {
+		e.Summary = "Error unknown operation name"
+		err = adapter.ErrOpInvalid
 		e.Details = err.Error()
 		h.StreamErr(e, err)
 		return err
 	}
 
-	operation, ok := operations[request.OperationName]
-	if !ok {
-		e.Summary = "Error unknown operation name"
-		err = adapter.ErrOpInvalid
+	opDesc := operation.Description
+	kubeClient, err := mesherykube.New(h.KubeClient, h.RestConfig)
+	if err != nil {
+		e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 		e.Details = err.Error()
 		h.StreamErr(e, err)
 		return err
@@ -51,8 +69,7 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 		config.InstallImageHubCommand,
 		config.InstallBookInfoCommand:
 
-		opDesc := operation.Properties[config.OperationDescriptionKey]
-		if status, err := h.applyUsingManifest(request, *operation); err != nil {
+		if status, err := h.applyManifests(request, *operation, *kubeClient); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
@@ -60,20 +77,22 @@ func (h *Handler) ApplyOperation(ctx context.Context, request adapter.OperationR
 		}
 
 		e.Summary = fmt.Sprintf("%s %s successfully.", opDesc, status)
-		e.Details = fmt.Sprintf("%s is now %s.", opDesc, status)
+		e.Details = fmt.Sprintf("%s %s successfully.", opDesc, status)
 
 		if !request.IsDeleteOperation {
-			if svc, ok := operation.Properties[config.OperationServiceNameKey]; ok && len(svc) > 0 {
-				portMsg, _, err1 := h.getServicePorts(request, *operation)
+			if svc, ok := operation.AdditionalProperties[config.OperationServiceNameKey]; ok && len(svc) > 0 {
+				h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
+
+				endpoint, err1 := kubeClient.GetServiceEndpoint(ctx, svc, request.Namespace)
 				if err1 != nil {
 					h.StreamErr(&adapter.Event{
 						Operationid: request.OperationID,
-						Summary:     fmt.Sprintf("Unable to retrieve port(s) info for the service %s.", operation.Properties[config.OperationServiceNameKey]),
+						Summary:     fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", operation.AdditionalProperties[config.OperationServiceNameKey]),
 						Details:     err1.Error(),
 					}, err1)
 				} else {
-					e.Summary = fmt.Sprintf("%s %s", e.Summary, portMsg)
-					e.Details = fmt.Sprintf("%s %s", e.Details, portMsg)
+					e.Summary = fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
+					e.Details = fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
 				}
 			}
 		}

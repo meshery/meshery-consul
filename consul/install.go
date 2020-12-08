@@ -1,76 +1,69 @@
+// Copyright 2020 Layer5, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 package consul
 
 import (
 	"fmt"
+	"io/ioutil"
 	"path"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
+	"github.com/layer5io/meshery-adapter-library/meshes"
 	opstatus "github.com/layer5io/meshery-adapter-library/status"
-	"github.com/layer5io/meshery-consul/internal/config"
+	"github.com/layer5io/meshkit/utils"
+	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 )
 
-type MeshInstance struct{}
-
-func (m *MeshInstance) applyUsingManifest(request adapter.OperationRequest, operation adapter.Operation, h *Handler) error {
-	err := h.ApplyKubernetesManifest(request, operation, map[string]string{"namespace": request.Namespace},
-		path.Join("consul", "config_templates", operation.Properties[config.OperationTemplateNameKey]))
-	return err
-}
-
-func (m *MeshInstance) getServicePorts(request adapter.OperationRequest, operation adapter.Operation, h *Handler) ([]int64, error) {
-	return h.GetServicePorts(operation.Properties[config.OperationServiceNameKey], request.Namespace)
-}
-
-func (h *Handler) applyUsingManifest(request adapter.OperationRequest, operation adapter.Operation) (string, error) {
+func (h *Consul) applyManifests(request adapter.OperationRequest, operation adapter.Operation, kubeClient mesherykube.Client) (string, error) {
 	status := opstatus.Installing
 
 	if request.IsDeleteOperation {
 		status = opstatus.Removing
 	}
 
-	meshInstance := &MeshInstance{}
+	h.Log.Info(fmt.Sprintf("%s %s", status, operation.Description))
 
-	err := h.Config.GetObject(adapter.MeshInstanceKey, meshInstance)
-	if err != nil {
-		return status, adapter.ErrMeshConfig(err)
+	if operation.Type == int32(meshes.OpCategory_CUSTOM) {
+		err := kubeClient.ApplyManifest([]byte(request.CustomBody), mesherykube.ApplyOptions{
+			Namespace: request.Namespace,
+			Update:    true,
+			Delete:    request.IsDeleteOperation,
+		})
+		if err != nil {
+			return status, ErrApplyOperation(err)
+		}
+	} else {
+		for _, template := range operation.Templates {
+			p := path.Join("consul", "config_templates", string(template))
+			tpl, err := ioutil.ReadFile(p)
+			if err != nil {
+				return status, ErrApplyOperation(err)
+			}
+			merged, err := utils.MergeToTemplate(tpl, map[string]string{"namespace": request.Namespace})
+			if err != nil {
+				return status, ErrApplyOperation(err)
+			}
+			err = kubeClient.ApplyManifest(merged, mesherykube.ApplyOptions{
+				Namespace: request.Namespace,
+				Update:    true,
+				Delete:    request.IsDeleteOperation,
+			})
+			if err != nil {
+				return status, ErrApplyOperation(err)
+			}
+		}
 	}
-
-	h.Log.Info(fmt.Sprintf("%s %s", status, operation.Properties[config.OperationDescriptionKey]))
-	err = meshInstance.applyUsingManifest(request, operation, h)
-	if err != nil {
-		h.Log.Error(adapter.ErrInstallMesh(err))
-		return status, adapter.ErrInstallMesh(err)
-	}
-
 	return opstatus.Deployed, nil
-}
-
-func (h *Handler) getServicePorts(request adapter.OperationRequest, operation adapter.Operation) (string, []int64, error) {
-	meshInstance := &MeshInstance{}
-
-	err := h.Config.GetObject(adapter.MeshInstanceKey, meshInstance)
-	if err != nil {
-		return "", nil, adapter.ErrMeshConfig(err)
-	}
-
-	svc := operation.Properties[config.OperationServiceNameKey]
-
-	h.Log.Info(fmt.Sprintf("Retreiving service ports for service %s.", svc))
-
-	var ports []int64
-	ports, err = meshInstance.getServicePorts(request, operation, h)
-	if err != nil {
-		err2 := ErrGetInfo(err)
-		h.Log.Error(err2)
-		return "", nil, err2
-	}
-
-	var portMsg string
-	if len(ports) == 1 {
-		portMsg = fmt.Sprintf("The service %s is possibly available on port: %v.", svc, ports)
-	} else if len(ports) > 1 {
-		portMsg = fmt.Sprintf("The service %s is possibly available on one of the following ports: %v.", svc, ports)
-	}
-
-	return portMsg, ports, nil
 }
