@@ -220,8 +220,7 @@ spec:
         version: v1
       annotations:
         "consul.hashicorp.com/connect-inject": "true"
-        "consul.hashicorp.com/connect-service-upstreams": "reviews:1233"
-        "consul.hashicorp.com/connect-service-upstreams": "details:1234"
+        "consul.hashicorp.com/connect-service-upstreams": "reviews:1233,details:1234"
     spec:
       containers:
       - name: productpage
@@ -229,4 +228,4 @@ spec:
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 9080
----
+

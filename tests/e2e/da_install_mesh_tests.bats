@@ -4,10 +4,10 @@ setup() {
     NAMESPACE=consul-e2e-tests
 }
 
-@test "consul_install should be successful" {
+@test "consul 1.8.2 demo installation should be successful" {
   INSTALL_CONSUL=$(cat <<EOT
 {
-  "opName": "consul_install",
+  "opName": "consul_182_demo",
   "namespace": "$NAMESPACE",
   "username": "",
   "customBody": "",

@@ -17,6 +17,7 @@ package consul
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 
@@ -63,11 +64,11 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	}
 
 	switch request.OperationName {
-	case config.CustomOpCommand,
-		config.InstallConsulCommand,
-		config.InstallHTTPBinCommand,
-		config.InstallImageHubCommand,
-		config.InstallBookInfoCommand:
+	case config.CustomOperation,
+		config.Consul182DemoOperation,
+		config.HTTPBinOperation,
+		config.ImageHubOperation,
+		config.BookInfoOperation:
 
 		if status, err := h.applyManifests(request, *operation, *kubeClient); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
@@ -79,20 +80,24 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		e.Summary = fmt.Sprintf("%s %s successfully.", opDesc, status)
 		e.Details = fmt.Sprintf("%s %s successfully.", opDesc, status)
 
-		if !request.IsDeleteOperation {
-			if svc, ok := operation.AdditionalProperties[config.OperationServiceNameKey]; ok && len(svc) > 0 {
-				h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
+		if !request.IsDeleteOperation && len(operation.Services) > 0 {
+			for _, service := range operation.Services {
+				svc := strings.TrimSpace(string(service))
+				if len(svc) > 0 {
+					h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
 
-				endpoint, err1 := kubeClient.GetServiceEndpoint(ctx, svc, request.Namespace)
-				if err1 != nil {
-					h.StreamErr(&adapter.Event{
-						Operationid: request.OperationID,
-						Summary:     fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", operation.AdditionalProperties[config.OperationServiceNameKey]),
-						Details:     err1.Error(),
-					}, err1)
-				} else {
-					e.Summary = fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
-					e.Details = fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
+					endpoint, err1 := kubeClient.GetServiceEndpoint(ctx, svc, request.Namespace)
+					if err1 != nil {
+						h.StreamErr(&adapter.Event{
+							Operationid: request.OperationID,
+							Summary:     fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc),
+							Details:     err1.Error(),
+						}, err1)
+					} else {
+						h.Log.Info(fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port))
+						e.Summary = fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
+						e.Details = fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
+					}
 				}
 			}
 		}

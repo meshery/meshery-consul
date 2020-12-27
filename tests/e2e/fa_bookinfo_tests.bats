@@ -7,7 +7,7 @@ setup() {
 @test "bookinfo installation should be successful" {
   INSTALL_BOOKINFO=$(cat <<EOT
 {
-  "opName": "install_book_info",
+  "opName": "bookinfo",
   "namespace": "$NAMESPACE",
   "username": "",
   "customBody": "",
@@ -53,7 +53,7 @@ EOT
 @test "bookinfo deletion should be successful" {
   DELETE_BOOKINFO=$(cat <<EOT
 {
-  "opName": "install_book_info",
+  "opName": "bookinfo",
   "namespace": "$NAMESPACE",
   "username": "",
   "customBody": "",
