@@ -29,6 +29,19 @@ var (
 			Templates:   []adapter.Template{"consul-1.8.2-demo.yaml"},
 			Services:    []adapter.Service{"consul-consul-ui"},
 		},
+		config.Consul191DemoOperation: &adapter.Operation{
+			Type:        int32(meshes.OpCategory_INSTALL),
+			Description: "Consul Connect v1.9.1: unsecured, 1 server, suitable for local exploration",
+			Versions:    []adapter.Version{"1.9.1"},
+			Templates:   []adapter.Template{},
+			Services:    []adapter.Service{"consul-consul-ui"},
+			AdditionalProperties: map[string]string{
+				config.HelmChartRepositoryKey: "https://helm.releases.hashicorp.com",
+				config.HelmChartChartKey:      "consul",
+				config.HelmChartVersionKey:    "0.28.0",
+				config.HelmChartValuesFileKey: "consul-values-1.9.1-demo.yaml",
+			},
+		},
 		config.BookInfoOperation: &adapter.Operation{
 			Type:        int32(meshes.OpCategory_SAMPLE_APPLICATION),
 			Description: "Istio Book Info Application",

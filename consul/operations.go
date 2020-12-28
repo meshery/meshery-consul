@@ -64,13 +64,20 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	}
 
 	switch request.OperationName {
-	case config.CustomOperation,
+	case config.Consul191DemoOperation: // Apply Helm chart operations
+		if status, err = h.applyHelmChart(request, *operation, *kubeClient); err != nil {
+			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
+			e.Details = err.Error()
+			h.StreamErr(e, err)
+			return err
+		}
+	case config.CustomOperation, // Apply Kubernetes manifests operations
 		config.Consul182DemoOperation,
 		config.HTTPBinOperation,
 		config.ImageHubOperation,
 		config.BookInfoOperation:
 
-		if status, err := h.applyManifests(request, *operation, *kubeClient); err != nil {
+		if status, err = h.applyManifests(request, *operation, *kubeClient); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
@@ -78,32 +85,36 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		}
 
 		e.Summary = fmt.Sprintf("%s %s successfully.", opDesc, status)
-		e.Details = fmt.Sprintf("%s %s successfully.", opDesc, status)
+		e.Details = e.Summary
 
-		if !request.IsDeleteOperation && len(operation.Services) > 0 {
-			for _, service := range operation.Services {
-				svc := strings.TrimSpace(string(service))
-				if len(svc) > 0 {
-					h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
+	default:
+		h.StreamErr(e, adapter.ErrOpInvalid)
+		return adapter.ErrOpInvalid
+	}
 
-					endpoint, err1 := kubeClient.GetServiceEndpoint(ctx, svc, request.Namespace)
-					if err1 != nil {
-						h.StreamErr(&adapter.Event{
-							Operationid: request.OperationID,
-							Summary:     fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc),
-							Details:     err1.Error(),
-						}, err1)
-					} else {
-						h.Log.Info(fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port))
-						e.Summary = fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
-						e.Details = fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
-					}
+	if !request.IsDeleteOperation && len(operation.Services) > 0 {
+		for _, service := range operation.Services {
+			svc := strings.TrimSpace(string(service))
+			if len(svc) > 0 {
+				h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
+
+				endpoint, err1 := kubeClient.GetServiceEndpoint(ctx, svc, request.Namespace)
+				if err1 != nil {
+					h.StreamErr(&adapter.Event{
+						Operationid: request.OperationID,
+						Summary:     fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc),
+						Details:     err1.Error(),
+					}, err1)
+				} else {
+					msg := fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
+					h.Log.Info(msg)
+					e.Summary = msg
+					e.Details = msg
 				}
 			}
 		}
-		h.StreamInfo(e)
-	default:
-		h.StreamErr(e, adapter.ErrOpInvalid)
 	}
+	h.StreamInfo(e)
+
 	return nil
 }

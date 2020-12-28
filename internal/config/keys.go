@@ -17,7 +17,14 @@ package config
 const (
 	CustomOperation        = "custom"
 	Consul182DemoOperation = "consul_182_demo"
+	Consul191DemoOperation = "consul_191_demo"
 	BookInfoOperation      = "bookinfo"
 	HTTPBinOperation       = "httpbin"
 	ImageHubOperation      = "imagehub"
+
+	// Keys in AdditionalProperties of Operation
+	HelmChartRepositoryKey = "helm_chart_repository"
+	HelmChartChartKey      = "helm_chart_chart"
+	HelmChartVersionKey    = "helm_chart_version"
+	HelmChartValuesFileKey = "helm_chart_values_file"
 )

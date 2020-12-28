@@ -1,7 +1,6 @@
 #load 'helpers'
 
 setup() {
-    NAMESPACE=consul-e2e-tests
     KUBECTL_CONTEXT=$(kubectl config current-context)
     KUBECTL_CONFIG=$(kubectl config view --raw | base64 | tr -d '\n')
     CREATE_MESH_REQ_MSG=$(cat <<EOT
