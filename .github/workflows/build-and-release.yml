@@ -1,7 +1,7 @@
 name: Meshery-consul Build and Releaser
 on:
-  release:
-    branches:
+  release
+#    branches:
 #      - 'master'
 #    tags:
 #      - 'v*'
