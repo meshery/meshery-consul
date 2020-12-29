@@ -1,10 +1,10 @@
 name: Meshery-consul Build and Releaser
 on:
-  push:
+  release:
     branches:
-      - 'master'
-    tags:
-      - 'v*'
+#      - 'master'
+#    tags:
+#      - 'v*'
 
 jobs:
   docker:
