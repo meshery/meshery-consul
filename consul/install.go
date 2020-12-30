@@ -73,6 +73,13 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 	return opstatus.Deployed, nil
 }
 
+// applyHelmChart installs or deletes an application packaged as Helm chart.
+//
+// Information about the Helm chart is specified in operation additional properties (keys defined in keys.go):
+// the repository, the chart, the version, and the name of a values-file.
+// The chart is the only required value, defaults are handled by ApplyHelmChart from meshkit.
+// The values-file is expected in the consul/config_templates folder. It corresponds to a file specified
+// by the -f (--values) flag of the Helm CLI.
 func (h *Consul) applyHelmChart(request adapter.OperationRequest, operation adapter.Operation, kubeClient mesherykube.Client) (string, error) {
 	status := opstatus.Installing
 
@@ -87,7 +94,7 @@ func (h *Consul) applyHelmChart(request adapter.OperationRequest, operation adap
 	if valuesFile, ok := operation.AdditionalProperties[config.HelmChartValuesFileKey]; ok {
 		valueOpts.ValueFiles = []string{path.Join("consul", "config_templates", valuesFile)}
 	}
-	values, err := valueOpts.MergeValues(p)
+	vals, err := valueOpts.MergeValues(p)
 	if err != nil {
 		return status, ErrApplyOperation(err)
 	}
@@ -101,7 +108,7 @@ func (h *Consul) applyHelmChart(request adapter.OperationRequest, operation adap
 			Chart:      operation.AdditionalProperties[config.HelmChartChartKey],
 			Version:    operation.AdditionalProperties[config.HelmChartVersionKey],
 		},
-		OverrideValues: values,
+		OverrideValues: vals,
 	})
 	if err != nil {
 		return status, ErrApplyOperation(err)

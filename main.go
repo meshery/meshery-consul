@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path"
 	"time"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
@@ -59,6 +60,22 @@ func main() {
 	kubeCfg, err := config.New(configprovider.Options{
 		ProviderConfig: config.KubeConfigDefaults,
 	})
+
+	if err != nil {
+		log.Error(err)
+		os.Exit(1)
+	}
+
+	// KUBECONFIG is required by the Helm library, and other tools that might be used by the adapter in the future.
+	kubeconfig := path.Join(
+		config.KubeConfigDefaults[configprovider.FilePath],
+		fmt.Sprintf("%s.%s", config.KubeConfigDefaults[configprovider.FileName], config.KubeConfigDefaults[configprovider.FileType]))
+	envval, present := os.LookupEnv("KUBECONFIG")
+	if present {
+		kubeconfig = fmt.Sprintf("%s:%s", envval, kubeconfig)
+	}
+	log.Info(fmt.Sprintf("KUBECONFIG: %s", kubeconfig))
+	err = os.Setenv("KUBECONFIG", kubeconfig)
 
 	if err != nil {
 		log.Error(err)
