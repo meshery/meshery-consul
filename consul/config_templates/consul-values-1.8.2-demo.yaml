@@ -1,4 +1,14 @@
-# Available parameters and their default values for the Consul chart.
+########################################################################################################################
+#
+# Meshery - Layer5
+# -----------------
+#
+# This is a copy of the default values file for the Consul chart, with some modifications.
+#
+# It is an unsecured configuration with just one server, suitable for local exploration and demo purposes.
+# It is not suitable for deployment to production.
+#
+########################################################################################################################
 
 # global holds values that affect multiple components of the chart.
 global:

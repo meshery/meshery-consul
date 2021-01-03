@@ -1,4 +1,14 @@
-# Available parameters and their default values for the Consul chart.
+########################################################################################################################
+#
+# Meshery - Layer5
+# -----------------
+#
+# This is a copy of the default values file for the Consul chart, with some modifications.
+#
+# It is an unsecured configuration with just one server, suitable for local exploration and demo purposes.
+# It is not suitable for deployment to production.
+#
+########################################################################################################################
 
 # Holds values that affect multiple components of the chart.
 global:
@@ -1363,17 +1373,17 @@ connectInject:
       requests:
         # Recommended default: 100Mi
         # @type: string
-        memory: null
+        memory: "100Mi"
         # Recommended default: 100m
         # @type: string
-        cpu: null
+        cpu: "100m"
       limits:
         # Recommended default: 100Mi
         # @type: string
-        memory: null
+        memory: "100Mi"
         # Recommended default: 100m
         # @type: string
-        cpu: null
+        cpu: "100m"
 
   # Resource settings for the Connect injected init container.
   initContainer:
@@ -1389,7 +1399,7 @@ connectInject:
 # Requires consul >= 1.8.4.
 # ServiceIntentions require consul 1.9+.
 controller:
-  enabled: false
+  enabled: true
   replicas: 1
 
   # Log verbosity level. One of "debug", "info", "warn", or "error".
