@@ -70,17 +70,12 @@ func main() {
 	kubeconfig := path.Join(
 		config.KubeConfigDefaults[configprovider.FilePath],
 		fmt.Sprintf("%s.%s", config.KubeConfigDefaults[configprovider.FileName], config.KubeConfigDefaults[configprovider.FileType]))
-	envval, present := os.LookupEnv("KUBECONFIG")
-	if present {
-		kubeconfig = fmt.Sprintf("%s:%s", envval, kubeconfig)
-	}
-	log.Info(fmt.Sprintf("KUBECONFIG: %s", kubeconfig))
 	err = os.Setenv("KUBECONFIG", kubeconfig)
-
 	if err != nil {
 		log.Error(err)
 		os.Exit(1)
 	}
+	log.Info(fmt.Sprintf("KUBECONFIG: %s", kubeconfig))
 
 	service.Handler = consul.New(cfg, log, kubeCfg)
 	service.Channel = make(chan interface{}, 100)

@@ -2,7 +2,7 @@
 
 setup() {
     KUBECTL_CONTEXT=$(kubectl config current-context)
-    KUBECTL_CONFIG=$(kubectl config view --raw | base64 | tr -d '\n')
+    KUBECTL_CONFIG=$(kubectl config view --minify --flatten --raw | base64 | tr -d '\n')
     CREATE_MESH_REQ_MSG=$(cat <<EOT
 {
   "k8sConfig": "$KUBECTL_CONFIG",
