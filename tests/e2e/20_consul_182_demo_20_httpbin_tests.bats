@@ -7,7 +7,7 @@ setup() {
 @test "httpbin installation should be successful" {
   INSTALL_HTTPBIN=$(cat <<EOT
 {
-  "opName": "install_http_bin",
+  "opName": "httpbin",
   "namespace": "$NAMESPACE",
   "username": "",
   "customBody": "",
@@ -28,7 +28,7 @@ EOT
 @test "httpbin deletion should be successful" {
   DELETE_HTTPBIN=$(cat <<EOT
 {
-  "opName": "install_http_bin",
+  "opName": "httpbin",
   "namespace": "$NAMESPACE",
   "username": "",
   "customBody": "",

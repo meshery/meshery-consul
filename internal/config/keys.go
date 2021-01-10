@@ -15,11 +15,16 @@
 package config
 
 const (
-	CustomOpCommand        = "custom"
-	InstallConsulCommand   = "consul_install"
-	InstallBookInfoCommand = "install_book_info"
-	InstallHTTPBinCommand  = "install_http_bin"
-	InstallImageHubCommand = "install_image_hub"
+	CustomOperation        = "custom"
+	Consul182DemoOperation = "consul_182_demo"
+	Consul191DemoOperation = "consul_191_demo"
+	BookInfoOperation      = "bookinfo"
+	HTTPBinOperation       = "httpbin"
+	ImageHubOperation      = "imagehub"
 
-	OperationServiceNameKey = "serviceName"
+	// Keys in AdditionalProperties of Operation
+	HelmChartRepositoryKey = "helm_chart_repository"
+	HelmChartChartKey      = "helm_chart_chart"
+	HelmChartVersionKey    = "helm_chart_version"
+	HelmChartValuesFileKey = "helm_chart_values_file"
 )

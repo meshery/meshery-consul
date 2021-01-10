@@ -7,7 +7,7 @@ setup() {
 @test "image-hub installation should be successful" {
   INSTALL_IMAGE_HUB=$(cat <<EOT
 {
-  "opName": "install_image_hub",
+  "opName": "imagehub",
   "namespace": "$NAMESPACE",
   "username": "",
   "customBody": "",
@@ -38,7 +38,7 @@ EOT
 @test "image-hub deletion should be successful" {
   DELETE_IMAGE_HUB=$(cat <<EOT
 {
-  "opName": "install_image_hub",
+  "opName": "imagehub",
   "namespace": "$NAMESPACE",
   "username": "",
   "customBody": "",

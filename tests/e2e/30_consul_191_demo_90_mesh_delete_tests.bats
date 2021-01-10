@@ -1,12 +1,13 @@
 setup() {
-    NAMESPACE=consul-e2e-tests
+    CONSUL_NAMESPACE=consul-e2e-tests
+    CONSUL_OP_NAME=consul_191_demo
 }
 
-@test "consul_install delete should be successful" {
+@test "consul 1.9.1 demo deletion should be successful" {
   DELETE_CONSUL=$(cat <<EOT
 {
-  "opName": "consul_install",
-  "namespace": "$NAMESPACE",
+  "opName": "$CONSUL_OP_NAME",
+  "namespace": "$CONSUL_NAMESPACE",
   "username": "",
   "customBody": "",
   "deleteOp": true,
@@ -20,7 +21,7 @@ EOT
 
 @test "no resources should remain in the consul namespace" {
   sleep 30
-  run bash -c "kubectl get all -n $NAMESPACE -o json | jq -j '.items | length'"
+  run bash -c "kubectl get all -n $CONSUL_NAMESPACE -o json | jq -j '.items | length'"
   [ "$status" -eq 0 ]
   [ "$output" = "0" ]
 }

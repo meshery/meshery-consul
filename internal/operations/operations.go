@@ -22,36 +22,48 @@ import (
 
 var (
 	Operations = adapter.Operations{
-		config.InstallConsulCommand: &adapter.Operation{
+		config.Consul182DemoOperation: &adapter.Operation{
 			Type:        int32(meshes.OpCategory_INSTALL),
-			Description: "Consul Connect: unsecured, 1 server, suitable for local exploration",
+			Description: "Consul Connect v1.8.2: unsecured, 1 server, suitable for local exploration",
 			Versions:    []adapter.Version{"1.8.2"},
-			Templates: []adapter.Template{
-				"consul.yaml",
+			Templates:   []adapter.Template{"consul-1.8.2-demo.yaml"},
+			Services:    []adapter.Service{"consul-consul-ui"},
+		},
+		config.Consul191DemoOperation: &adapter.Operation{
+			Type:        int32(meshes.OpCategory_INSTALL),
+			Description: "Consul Connect v1.9.1: unsecured, 1 server, suitable for local exploration",
+			Versions:    []adapter.Version{"1.9.1"},
+			Templates:   []adapter.Template{},
+			Services:    []adapter.Service{"consul-consul-ui"},
+			AdditionalProperties: map[string]string{
+				config.HelmChartRepositoryKey: "https://helm.releases.hashicorp.com",
+				config.HelmChartChartKey:      "consul",
+				config.HelmChartVersionKey:    "0.28.0",
+				config.HelmChartValuesFileKey: "consul-values-1.9.1-demo.yaml",
 			},
 		},
-		config.InstallBookInfoCommand: &adapter.Operation{
-			Type:                 int32(meshes.OpCategory_SAMPLE_APPLICATION),
-			Description:          "Istio Book Info Application",
-			Versions:             []adapter.Version{},
-			Templates:            []adapter.Template{"bookinfo.yaml"},
-			AdditionalProperties: map[string]string{config.OperationServiceNameKey: "productpage"},
+		config.BookInfoOperation: &adapter.Operation{
+			Type:        int32(meshes.OpCategory_SAMPLE_APPLICATION),
+			Description: "Istio Book Info Application",
+			Versions:    []adapter.Version{},
+			Templates:   []adapter.Template{"bookinfo.yaml"},
+			Services:    []adapter.Service{"productpage"},
 		},
-		config.InstallHTTPBinCommand: &adapter.Operation{
-			Type:                 int32(meshes.OpCategory_SAMPLE_APPLICATION),
-			Description:          "HTTPbin Application",
-			Versions:             []adapter.Version{},
-			Templates:            []adapter.Template{"httpbin-consul.yaml"},
-			AdditionalProperties: map[string]string{config.OperationServiceNameKey: "httpbin"},
+		config.HTTPBinOperation: &adapter.Operation{
+			Type:        int32(meshes.OpCategory_SAMPLE_APPLICATION),
+			Description: "HTTPbin Application",
+			Versions:    []adapter.Version{},
+			Templates:   []adapter.Template{"httpbin-consul.yaml"},
+			Services:    []adapter.Service{"httpbin"},
 		},
-		config.InstallImageHubCommand: &adapter.Operation{
-			Type:                 int32(meshes.OpCategory_SAMPLE_APPLICATION),
-			Description:          "Image Hub Application",
-			Versions:             []adapter.Version{},
-			Templates:            []adapter.Template{"image-hub.yaml"},
-			AdditionalProperties: map[string]string{config.OperationServiceNameKey: "ingess"},
+		config.ImageHubOperation: &adapter.Operation{
+			Type:        int32(meshes.OpCategory_SAMPLE_APPLICATION),
+			Description: "Image Hub Application",
+			Versions:    []adapter.Version{},
+			Templates:   []adapter.Template{"image-hub.yaml"},
+			Services:    []adapter.Service{"ingess"},
 		},
-		config.CustomOpCommand: &adapter.Operation{
+		config.CustomOperation: &adapter.Operation{
 			Type:        int32(meshes.OpCategory_CUSTOM),
 			Description: "Custom YAML",
 			Versions:    []adapter.Version{},
