@@ -8,5 +8,5 @@ require (
 	github.com/layer5io/meshery-adapter-library v0.1.11
 	github.com/layer5io/meshkit v0.1.31
 	google.golang.org/grpc v1.32.0 // indirect
-	helm.sh/helm/v3 v3.3.1
+	helm.sh/helm/v3 v3.4.2
 )
