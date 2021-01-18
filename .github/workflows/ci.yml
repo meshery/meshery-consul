@@ -42,6 +42,11 @@ jobs:
       with:
         go-version: ${{ secrets.GO_VERSION }}
     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go build .
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: meshery-consul
+        path: ./meshery-consul
   e2e-tests:
     needs: [golangci, build]
     name: End-to-end tests
@@ -56,6 +61,10 @@ jobs:
         with:
           repository: layer5io/meshery
           path: ./meshery
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: meshery-consul
       - name: Setup go
         uses: actions/setup-go@v1
         with:
@@ -79,6 +88,10 @@ jobs:
         run: |
           mkdir /home/runner/.meshery
           ./meshery-consul &
+      - name: Install grpcurl
+        run: |
+          go get github.com/fullstorydev/grpcurl/...
+          go install github.com/fullstorydev/grpcurl/cmd/grpcurl
       - name: Setup BATS
         uses: mig4/setup-bats@v1
         with:
