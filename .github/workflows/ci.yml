@@ -42,3 +42,47 @@ jobs:
       with:
         go-version: ${{ secrets.GO_VERSION }}
     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go build .
+  e2e-tests:
+    needs: [golangci-lint, build]
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Check out meshery code
+        uses: actions/checkout@v2
+        with:
+          repository: layer5io/meshery
+          path: ./meshery
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ secrets.GO_VERSION }}
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.1.0
+        with:
+          cluster_name: "kind-cluster"
+      - name: Update /etc/hosts
+        run: echo "127.0.0.1 mesherylocal.layer5.io" | sudo tee -a /etc/hosts
+      - name: Run meshery
+        env:
+          PROVIDER_BASE_URLS: https://meshery.layer5.io
+          PORT: 9081
+          ADAPTER_URLS: "mesherylocal.layer5.io:10002"
+        run: |
+          cd ./meshery
+          make run-local &
+          sleep 10
+      - name: Run meshery-consul
+        run: |
+          mkdir /home/runner/.meshery
+          ./meshery-consul &
+      - name: Setup BATS
+        uses: mig4/setup-bats@v1
+        with:
+          bats-version: 1.2.1
+      - name: Test
+        run: bats -r tests/e2e
+
