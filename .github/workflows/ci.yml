@@ -73,6 +73,7 @@ jobs:
         uses: helm/kind-action@v1.1.0
         with:
           cluster_name: "kind-cluster"
+          node_image: kindest/node:v1.18.8
       - name: Update /etc/hosts
         run: echo "127.0.0.1 mesherylocal.layer5.io" | sudo tee -a /etc/hosts
       - name: Run meshery
@@ -87,11 +88,14 @@ jobs:
       - name: Run meshery-consul
         run: |
           mkdir /home/runner/.meshery
+          chmod +x ./meshery-consul
           ./meshery-consul &
       - name: Install grpcurl
         run: |
           go get github.com/fullstorydev/grpcurl/...
           go install github.com/fullstorydev/grpcurl/cmd/grpcurl
+          echo $GOPATH
+          export PATH=$PATH:/home/runner/go/bin
       - name: Setup BATS
         uses: mig4/setup-bats@v1
         with:
