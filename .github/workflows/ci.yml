@@ -96,7 +96,6 @@ jobs:
           tar -xvf grpcurl_1.8.0_linux_x86_64.tar.gz
           chmod +x grpcurl
           sudo mv grpcurl /usr/bin
-          which
       - name: Setup BATS
         uses: mig4/setup-bats@v1
         with:
