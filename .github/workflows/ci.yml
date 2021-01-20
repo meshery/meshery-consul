@@ -42,3 +42,48 @@ jobs:
       with:
         go-version: ${{ secrets.GO_VERSION }}
     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go build .
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: meshery-consul
+        path: ./meshery-consul
+  e2e-tests:
+    needs: [golangci, build]
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: meshery-consul
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ secrets.GO_VERSION }}
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.1.0
+        with:
+          cluster_name: "kind-cluster"
+          node_image: kindest/node:v1.18.8
+      - name: Run meshery-consul
+        run: |
+          mkdir /home/runner/.meshery
+          chmod +x ./meshery-consul
+          ./meshery-consul &
+      - name: Install grpcurl
+        run: |
+          wget https://github.com/fullstorydev/grpcurl/releases/download/v1.8.0/grpcurl_1.8.0_linux_x86_64.tar.gz
+          tar -xvf grpcurl_1.8.0_linux_x86_64.tar.gz
+          chmod +x grpcurl
+          sudo mv grpcurl /usr/bin
+      - name: Setup BATS
+        uses: mig4/setup-bats@v1
+        with:
+          bats-version: 1.2.1
+      - name: Test
+        run: bats -r tests/e2e
+
