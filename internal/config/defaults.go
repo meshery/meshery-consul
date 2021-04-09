@@ -17,18 +17,19 @@ package config
 import (
 	configprovider "github.com/layer5io/meshery-adapter-library/config/provider"
 	"github.com/layer5io/meshery-adapter-library/status"
+	smp "github.com/layer5io/service-mesh-performance/spec"
 )
 
 var (
 	ServerDefaults = map[string]string{
-		"name":     "consul-adapter",
+		"name":     smp.ServiceMesh_CONSUL.Enum().String(),
+		"type":     "adapter",
 		"port":     "10002",
 		"traceurl": "none",
-		"version":  "v0.1.0",
 	}
 
 	MeshSpecDefaults = map[string]string{
-		"name":    "Consul",
+		"name":    smp.ServiceMesh_CONSUL.Enum().String(),
 		"status":  status.NotInstalled,
 		"version": "1.8.2",
 	}
