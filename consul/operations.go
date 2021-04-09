@@ -20,7 +20,6 @@ import (
 	"strings"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
-	opstatus "github.com/layer5io/meshery-adapter-library/status"
 	"github.com/layer5io/meshery-consul/internal/config"
 	meshery_kube "github.com/layer5io/meshkit/utils/kubernetes"
 )
@@ -32,7 +31,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		return err
 	}
 
-	status := opstatus.Deploying
+	//status := opstatus.Deploying
 	e := &adapter.Event{
 		Operationid: request.OperationID,
 		Summary:     "Deploying",
@@ -40,7 +39,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	}
 
 	if request.IsDeleteOperation {
-		status = opstatus.Removing
+		//status = opstatus.Removing
 		e.Summary = "Removing"
 	}
 
@@ -57,7 +56,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 
 	switch request.OperationName {
 	case config.Consul191DemoOperation: // Apply Helm chart operations
-		if status, err = h.applyHelmChart(request, *operation, *h.MesheryKubeclient); err != nil {
+		if status, err := h.applyHelmChart(request, *operation, *h.MesheryKubeclient); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
@@ -69,7 +68,8 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		config.ImageHubOperation,
 		config.BookInfoOperation:
 
-		if status, err = h.applyManifests(request, *operation, *h.MesheryKubeclient); err != nil {
+		status, err := h.applyManifests(request, *operation, *h.MesheryKubeclient)
+		if err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
