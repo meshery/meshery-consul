@@ -32,6 +32,8 @@ import (
 
 const (
 	serviceName = "consul-adapter"
+	version     = "none"
+	gitsha      = "none"
 )
 
 func main() {
@@ -80,6 +82,8 @@ func main() {
 	service.Handler = consul.New(cfg, log, kubeCfg)
 	service.Channel = make(chan interface{}, 100)
 	service.StartedAt = time.Now()
+	service.Version = version
+	service.GitSHA = gitsha
 	err = grpc.Start(service, nil)
 	if err != nil {
 		log.Error(grpc.ErrGrpcServer(err))

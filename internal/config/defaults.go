@@ -22,14 +22,14 @@ import (
 
 var (
 	ServerDefaults = map[string]string{
-		"name":     "consul-adapter",
+		"name":     smp.ServiceMesh_CONSUL.Enum().String(),
+		"type":     "adapter",
 		"port":     "10002",
 		"traceurl": "none",
-		"version":  "v0.1.0",
 	}
 
 	MeshSpecDefaults = map[string]string{
-		"name":    "Consul",
+		"name":    smp.ServiceMesh_CONSUL.Enum().String(),
 		"status":  status.NotInstalled,
 		"version": "1.8.2",
 		"type":    smp.ServiceMesh_CONSUL.Enum().String(),

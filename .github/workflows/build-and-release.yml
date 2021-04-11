@@ -25,7 +25,7 @@ jobs:
         run: |
           export DOCKER_BUILDKIT=0
           export COMPOSE_DOCKER_CLI_BUILD=0
-          docker build --no-cache -t ${{ secrets.IMAGE_NAME }}:edge-latest .
+          docker build --no-cache -t ${{ secrets.IMAGE_NAME }}:edge-latest --build-arg TOKEN=${{ secrets.GLOBAL_TOKEN }} --build-arg GIT_COMMITSHA=${GITHUB_SHA::7} --build-arg VERSION="edge-latest" .
           docker tag ${{ secrets.IMAGE_NAME }}:edge-latest ${{ secrets.IMAGE_NAME }}:edge-${GITHUB_SHA::7}
       - name: Docker edge push
         if: startsWith(github.ref, 'refs/tags/') != true && success()
@@ -37,7 +37,7 @@ jobs:
         run: |
           export DOCKER_BUILDKIT=0
           export COMPOSE_DOCKER_CLI_BUILD=0
-          docker build --no-cache -t ${{ secrets.IMAGE_NAME }}:stable-latest .
+          docker build --no-cache -t ${{ secrets.IMAGE_NAME }}:stable-latest --build-arg GIT_COMMITSHA=${GITHUB_SHA::7} --build-arg VERSION=${GITHUB_REF/refs\/tags\//} .
           docker tag ${{ secrets.IMAGE_NAME }}:stable-latest ${{ secrets.IMAGE_NAME }}:stable-${GITHUB_REF/refs\/tags\//}
           docker tag ${{ secrets.IMAGE_NAME }}:stable-latest ${{ secrets.IMAGE_NAME }}:stable-${GITHUB_SHA::7}
       - name: Docker stable push
