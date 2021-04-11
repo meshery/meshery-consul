@@ -17,6 +17,7 @@ package config
 import (
 	configprovider "github.com/layer5io/meshery-adapter-library/config/provider"
 	"github.com/layer5io/meshery-adapter-library/status"
+	smp "github.com/layer5io/service-mesh-performance/spec"
 )
 
 var (
@@ -31,6 +32,7 @@ var (
 		"name":    "Consul",
 		"status":  status.NotInstalled,
 		"version": "1.8.2",
+		"type":    smp.ServiceMesh_CONSUL.Enum().String(),
 	}
 
 	ViperDefaults = map[string]string{

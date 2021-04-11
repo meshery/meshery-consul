@@ -19,11 +19,15 @@ import (
 	"fmt"
 	"strings"
 
-	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
-
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	opstatus "github.com/layer5io/meshery-adapter-library/status"
 	"github.com/layer5io/meshery-consul/internal/config"
+	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
+)
+
+const (
+	// SMIManifest is the manifest.yaml file for smi conformance tool
+	SMIManifest = "https://raw.githubusercontent.com/layer5io/learn-layer5/master/smi-conformance/manifest.yml"
 )
 
 func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRequest) error {
@@ -55,7 +59,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	}
 
 	opDesc := operation.Description
-	kubeClient, err := mesherykube.New(h.KubeClient, h.RestConfig)
+	kubeClient := h.MesheryKubeclient
 	if err != nil {
 		e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 		e.Details = err.Error()
@@ -87,6 +91,28 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		e.Summary = fmt.Sprintf("%s %s successfully.", opDesc, status)
 		e.Details = e.Summary
 
+	case config.SmiConformanceOperation:
+		go func(hh *Consul, ee *adapter.Event) {
+			name := operations[request.OperationName].Description
+			_, err := hh.RunSMITest(adapter.SMITestOptions{
+				Ctx:         context.TODO(),
+				OperationID: ee.Operationid,
+				Labels: map[string]string{
+					"istio-injection": "enabled",
+				},
+				Namespace: "meshery",
+				Manifest:  SMIManifest,
+				Annotations: map[string]string{
+					"consul.hashicorp.com/connect-inject": "true",
+				},
+			})
+			if err != nil {
+				e.Summary = fmt.Sprintf("Error while %s %s test", status, name)
+				e.Details = err.Error()
+				hh.StreamErr(e, err)
+				return
+			}
+		}(h, e)
 	default:
 		h.StreamErr(e, adapter.ErrOpInvalid)
 		return adapter.ErrOpInvalid
@@ -98,7 +124,12 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 			if len(svc) > 0 {
 				h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
 
-				endpoint, err1 := kubeClient.GetServiceEndpoint(ctx, svc, request.Namespace)
+				endpoint, err1 := mesherykube.GetServiceEndpoint(ctx, kubeClient.KubeClient, &mesherykube.ServiceOptions{
+					Name:         svc,
+					Namespace:    request.Namespace,
+					PortSelector: svc,
+					APIServerURL: kubeClient.RestConfig.Host,
+				})
 				if err1 != nil {
 					h.StreamErr(&adapter.Event{
 						Operationid: request.OperationID,
@@ -106,7 +137,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 						Details:     err1.Error(),
 					}, err1)
 				} else {
-					msg := fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.Address, endpoint.Port)
+					msg := fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.External.Address, endpoint.External.Port)
 					h.Log.Info(msg)
 					e.Summary = msg
 					e.Details = msg
