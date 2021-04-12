@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
+	"github.com/layer5io/meshery-adapter-library/status"
 	"github.com/layer5io/meshery-consul/internal/config"
 	meshery_kube "github.com/layer5io/meshkit/utils/kubernetes"
 )
@@ -90,17 +91,15 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 			_, err := hh.RunSMITest(adapter.SMITestOptions{
 				Ctx:         context.TODO(),
 				OperationID: ee.Operationid,
-				Labels: map[string]string{
-					"istio-injection": "enabled",
-				},
-				Namespace: "meshery",
-				Manifest:  SMIManifest,
+				Labels:      make(map[string]string),
+				Namespace:   "meshery",
+				Manifest:    SMIManifest,
 				Annotations: map[string]string{
 					"consul.hashicorp.com/connect-inject": "true",
 				},
 			})
 			if err != nil {
-				e.Summary = fmt.Sprintf("Error while %s %s test", status, name)
+				e.Summary = fmt.Sprintf("Error while %s %s test", status.Running, name)
 				e.Details = err.Error()
 				hh.StreamErr(e, err)
 				return
