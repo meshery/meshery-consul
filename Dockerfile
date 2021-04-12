@@ -1,6 +1,6 @@
 FROM golang:1.15 as bd
 ARG VERSION
-ARG GIT_SHA
+ARG GIT_COMMITSHA
 WORKDIR /github.com/layer5io/meshery-consul
 ADD . .
 RUN GOPROXY=direct GOSUMDB=off go build -ldflags="-w -s -X main.version=$VERSION -X main.gitsha=$GIT_SHA" -a -o /meshery-consul .
