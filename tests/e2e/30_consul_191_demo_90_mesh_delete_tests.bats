@@ -20,7 +20,7 @@ EOT
 }
 
 @test "no resources should remain in the consul namespace" {
-  sleep 30
+  sleep 60
   run bash -c "kubectl get all -n $CONSUL_NAMESPACE -o json | jq -j '.items | length'"
   [ "$status" -eq 0 ]
   [ "$output" = "0" ]

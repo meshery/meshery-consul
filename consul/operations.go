@@ -102,7 +102,15 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 						Details:     err1.Error(),
 					}, err1)
 				} else {
-					msg := fmt.Sprintf("%s Service endpoint %s at %s:%v", e.Summary, endpoint.Name, endpoint.External.Address, endpoint.External.Port)
+					external := "N/A"
+					if endpoint.External != nil {
+						external = fmt.Sprintf("%s:%v", endpoint.External.Address, endpoint.External.Port)
+					}
+					internal := "N/A"
+					if endpoint.Internal != nil {
+						internal = fmt.Sprintf("%s:%v", endpoint.Internal.Address, endpoint.Internal.Port)
+					}
+					msg := fmt.Sprintf("%s Service endpoints for service %s: internal=%s, external=%s", e.Summary, svc, internal, external)
 					h.Log.Info(msg)
 					e.Summary = msg
 					e.Details = msg
