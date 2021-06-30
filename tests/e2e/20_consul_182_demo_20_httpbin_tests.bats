@@ -1,4 +1,4 @@
-#load 'helpers'
+load 'helpers'
 
 setup() {
     NAMESPACE=httpbin
@@ -42,8 +42,6 @@ EOT
 }
 
 @test "no resources should remain in the httpbin namespace" {
-  sleep 30
-  run bash -c "kubectl get all -n $NAMESPACE -o json | jq -j '.items | length'"
-  [ "$status" -eq 0 ]
-  [ "$output" = "0" ]
+  wait_until_namespace_empty "$NAMESPACE"
+  [ "$?" -eq 0 ]
 }

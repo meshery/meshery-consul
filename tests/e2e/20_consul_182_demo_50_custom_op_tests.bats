@@ -1,3 +1,5 @@
+load 'helpers'
+
 setup() {
     NAMESPACE=httpbin-custom
     CUSTOM_BODY='apiVersion: v1\nkind: Service\nmetadata:\n  name: httpbin\n  labels:\n    app: httpbin\nspec:\n  type: LoadBalancer\n  ports:\n  - name: http\n    port: 8000\n    targetPort: 80\n  selector:\n    app: httpbin\n---\napiVersion: apps/v1\nkind: Deployment\nmetadata:\n  name: httpbin\nspec:\n  replicas: 1\n  selector:\n    matchLabels:\n      app: httpbin\n  template:\n    metadata:\n      labels:\n        app: httpbin\n        version: v1\n      annotations:\n        \"consul.hashicorp.com/connect-inject\": \"true\"\n    spec:\n      containers:\n      - image: docker.io/kennethreitz/httpbin\n        imagePullPolicy: IfNotPresent\n        name: httpbin\n        ports:\n        - containerPort: 80\n\n'
@@ -41,8 +43,6 @@ EOT
 }
 
 @test "custom-operation: no resources should remain in the httpbin namespace" {
-  sleep 30
-  run bash -c "kubectl get all -n $NAMESPACE -o json | jq -j '.items | length'"
-  [ "$status" -eq 0 ]
-  [ "$output" = "0" ]
+  wait_until_namespace_empty "$NAMESPACE"
+  [ "$?" -eq 0 ]
 }
