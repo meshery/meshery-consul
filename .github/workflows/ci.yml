@@ -65,7 +65,7 @@ jobs:
         with:
           go-version: ${{ secrets.GO_VERSION }}
       - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.1.0
+        uses: helm/kind-action@v1.2.0
         with:
           cluster_name: "kind-cluster"
           node_image: kindest/node:v1.18.8
