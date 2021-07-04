@@ -1,3 +1,5 @@
+load 'helpers'
+
 setup() {
     CONSUL_NAMESPACE=consul-e2e-tests
     CONSUL_OP_NAME=consul_191_demo
@@ -20,8 +22,6 @@ EOT
 }
 
 @test "no resources should remain in the consul namespace" {
-  sleep 30
-  run bash -c "kubectl get all -n $CONSUL_NAMESPACE -o json | jq -j '.items | length'"
-  [ "$status" -eq 0 ]
-  [ "$output" = "0" ]
+  wait_until_namespace_empty "$CONSUL_NAMESPACE"
+  [ "$?" -eq 0 ]
 }

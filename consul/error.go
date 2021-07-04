@@ -15,10 +15,13 @@
 package consul
 
 import (
-	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshkit/errors"
 )
 
+var (
+	ErrApplyOperationCode = "1000"
+)
+
 func ErrApplyOperation(err error) error {
-	return errors.NewDefault(adapter.ErrApplyOperationCode, "Error applying operation", err.Error())
+	return errors.New(ErrApplyOperationCode, errors.Alert, []string{"Error applying operation", err.Error()}, []string{}, []string{}, []string{})
 }

@@ -1,4 +1,4 @@
-#load 'helpers'
+load 'helpers'
 
 setup() {
     BOOKINFO_NAMESPACE=bookinfo
@@ -68,8 +68,6 @@ EOT
 }
 
 @test "no resources should remain in the bookinfo namespace" {
-  sleep 60
-  run bash -c "kubectl get all -n $BOOKINFO_NAMESPACE -o json | jq -j '.items | length'"
-  [ "$status" -eq 0 ]
-  [ "$output" = "0" ]
+  wait_until_namespace_empty "$BOOKINFO_NAMESPACE"
+  [ "$?" -eq 0 ]
 }

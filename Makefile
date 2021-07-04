@@ -1,7 +1,7 @@
 e2e-tests-localhost: export MESHERY_ADAPTER_ADDR=localhost
 
 .PHONY: check
-check:
+check: error
 	golangci-lint run
 
 .PHONY: check-clean-cache
@@ -42,3 +42,7 @@ docker-run:
 .PHONY: run
 run:
 	DEBUG=true go run main.go
+
+.PHONY: error
+error:
+	go run github.com/layer5io/meshkit/cmd/errorutil -d . update

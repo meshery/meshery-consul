@@ -39,3 +39,16 @@ assert_not_contains() {
   done
   return 0
 }
+
+wait_until_namespace_empty() {
+  local max_sleep_count=40
+  local sleep_count=0
+  local resource_count=1
+  until [ "$sleep_count" -ge $max_sleep_count ] || [ "$resource_count" -eq 0 ]; do
+    sleep 2
+    ((sleep_count=sleep_count+1))
+    resource_count=$(kubectl get all -n $1 -o json | jq -j '.items | length')
+    echo "# resource_count: ${resource_count}, sleep_count: ${sleep_count}" >&3
+  done
+  return "$resource_count"
+}

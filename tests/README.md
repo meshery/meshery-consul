@@ -12,7 +12,7 @@ repeat for all sample applications, and finally delete the mesh.
 
 ## Prerequisites
 
-* A local cluster, e.g. microk8s. The tests were tested using microk8s 1.16/stable.
+* A local cluster, e.g. minikube. The tests were tested using `minikube start --cpus 4 --memory 8192 --kubernetes-version=v1.14.1`
 * `kubectl`
 * `jq`, a tool for processing JSON inputs.
 * `base64`, used to encode kubeconfig. 

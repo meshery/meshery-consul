@@ -15,5 +15,5 @@ load 'helpers'
 @test "adapter should return expected mesh name" {
   run bash -c "grpcurl --plaintext $MESHERY_ADAPTER_ADDR:10002 meshes.MeshService.MeshName | jq -j .name"
   [ "$status" -eq 0 ]
-  [ "$output" = "Consul" ]
+  [ "$output" = "CONSUL" ]
 }
