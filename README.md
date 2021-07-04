@@ -9,7 +9,7 @@
 [![GitHub issues by-label](https://img.shields.io/github/issues/layer5io/meshery-consul/help%20wanted.svg)](https://github.com/layer5io/meshery-consul/issues?q=is%3Aopen+is%3Aissue+label%3A"help+wanted")
 [![Website](https://img.shields.io/website/https/layer5.io/meshery.svg)](https://layer5.io/meshery/)
 [![Twitter Follow](https://img.shields.io/twitter/follow/layer5.svg?label=Follow&style=social)](https://twitter.com/intent/follow?screen_name=mesheryio)
-[![Slack](http://slack.layer5.io/badge.svg)](http://slack.layer5.io)
+[![Slack](http://slack.layer5.io/badge.svg)](https://layer5io.slack.com/join/shared_invite/zt-rgbyt4kj-6PUUyqY9SfQGRSt_oZV9yQ#/shared-invite/email)
 [![CII Best Practices](https://bestpractices.coreinfrastructure.org/projects/3564/badge)](https://bestpractices.coreinfrastructure.org/projects/3564)
 
 <p style="clear:both;">
