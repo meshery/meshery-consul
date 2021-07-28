@@ -32,6 +32,7 @@ var (
 		"name":    smp.ServiceMesh_CONSUL.Enum().String(),
 		"status":  status.NotInstalled,
 		"version": "1.8.2",
+		"type":    smp.ServiceMesh_CONSUL.Enum().String(),
 	}
 
 	ViperDefaults = map[string]string{

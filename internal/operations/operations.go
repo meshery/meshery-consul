@@ -69,5 +69,9 @@ var (
 			Versions:    []adapter.Version{},
 			Templates:   []adapter.Template{},
 		},
+		config.SmiConformanceOperation: &adapter.Operation{
+			Type:        int32(meshes.OpCategory_VALIDATE),
+			Description: "SMI Conformance",
+		},
 	}
 )
