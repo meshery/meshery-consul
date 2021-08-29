@@ -30,7 +30,7 @@ import (
 	"github.com/layer5io/meshkit/logger"
 )
 
-const (
+var (
 	serviceName = "consul-adapter"
 	version     = "none"
 	gitsha      = "none"
