@@ -65,57 +65,66 @@ type commit struct {
 	Tree roottree `json:"tree"`
 }
 type roottree struct {
-	Url string `json:"url"`
+	URL string `json:"url"`
 }
-type lol struct {
+type treeslice struct {
 	Tree []map[string]string `json:"tree"`
 }
 
 // GetFileNames takes the url of a github repo and the path to a directory. Then returns all the filenames from that directory
-func GetFileNames(url string, path string) []string {
+func GetFileNames(url string, path string) ([]string, error) {
 	res, err := http.Get(url + "/commits") //url="https://api.github.com/repos/hashicorp/consul-k8s"
 	if err != nil {
-		return []string{}
+		return nil, err
 	}
 	defer res.Body.Close()
 	content, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
 	var r []rootdir
-	json.Unmarshal(content, &r)
-	shaurl := r[0].Commit.Tree.Url
+	err = json.Unmarshal(content, &r)
+	if err != nil {
+		return nil, err
+	}
+	shaurl := r[0].Commit.Tree.URL
 	bpath := strings.Split(path, "/")
-	ans := _getname(shaurl, bpath)
-	return ans
+	ans, err := _getname(shaurl, bpath)
+	return ans, ErrGetManifestNames(err)
 }
 
-func _getname(shaUrl string, bpath []string) []string {
+func _getname(shaURL string, bpath []string) ([]string, error) {
 	var ans []string
-	res, err := http.Get(shaUrl)
+	res, err := http.Get(shaURL)
 	if err != nil {
-		return []string{}
+		return []string{}, err
 	}
 	defer res.Body.Close()
-	var t lol
+	var t treeslice
 	content, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return []string{}
+		return []string{}, err
 	}
-	json.Unmarshal(content, &t)
+	err = json.Unmarshal(content, &t)
+	if err != nil {
+		return nil, err
+	}
 	if len(bpath) != 0 {
 		dirName := bpath[0]
 		bpath = bpath[1:]
 
 		for _, c := range t.Tree {
 			if c["path"] == dirName {
-				tempans := _getname(c["url"], bpath)
-				return tempans
+				tempans, err := _getname(c["url"], bpath)
+				return tempans, err
 			}
 		}
-		return []string{}
+		return []string{}, err
 	}
 
 	//base case
 	for _, c := range t.Tree {
 		ans = append(ans, c["path"])
 	}
-	return ans
+	return ans, err
 }

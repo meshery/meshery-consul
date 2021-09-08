@@ -24,7 +24,6 @@ import (
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	configprovider "github.com/layer5io/meshery-adapter-library/config/provider"
 	"github.com/layer5io/meshery-consul/internal/config"
-	internalconfig "github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshery-consul/internal/operations"
 
 	"github.com/layer5io/meshery-adapter-library/api/grpc"
@@ -107,14 +106,17 @@ func registerDynamicCapabilities(port string, log logger.Handler) {
 		<-ticker.C
 		registerWorkloads(port, log)
 	}
-
 }
 
 func registerWorkloads(port string, log logger.Handler) {
-	crds := config.GetFileNames("https://api.github.com/repos/hashicorp/consul-k8s", "control-plane/config/crd/bases")
+	crds, err := config.GetFileNames("https://api.github.com/repos/hashicorp/consul-k8s", "control-plane/config/crd/bases")
+	if err != nil {
+		log.Info("Could not get manifest names ", err.Error())
+		return
+	}
 	rel, err := config.GetLatestReleases(1)
 	if err != nil {
-		log.Info("Could not get latest version")
+		log.Info("Could not get latest version ", err.Error())
 		return
 	}
 	appVersion := rel[0].TagName
@@ -136,7 +138,7 @@ func registerWorkloads(port string, log logger.Handler) {
 					SpecFilter:    []string{"$..openAPIV3Schema.properties.spec", " --o-filter", "$[]"},
 				},
 			},
-			Operation: internalconfig.ConsulOperation,
+			Operation: config.ConsulOperation,
 		}); err != nil {
 			log.Info(err.Error())
 			return
