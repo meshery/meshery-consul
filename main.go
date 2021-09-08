@@ -18,16 +18,20 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	configprovider "github.com/layer5io/meshery-adapter-library/config/provider"
+	"github.com/layer5io/meshery-consul/internal/config"
+	internalconfig "github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshery-consul/internal/operations"
 
 	"github.com/layer5io/meshery-adapter-library/api/grpc"
 	"github.com/layer5io/meshery-consul/consul"
-	"github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshkit/logger"
+	"github.com/layer5io/meshkit/utils/manifests"
+	smp "github.com/layer5io/service-mesh-performance/spec"
 )
 
 var (
@@ -84,9 +88,83 @@ func main() {
 	service.StartedAt = time.Now()
 	service.Version = version
 	service.GitSHA = gitsha
+	go registerDynamicCapabilities(service.Port, log) //Registering latest capabilities periodically
+
+	// Server Initialization
+	log.Info("Adaptor Listening at port: ", service.Port)
 	err = grpc.Start(service, nil)
 	if err != nil {
 		log.Error(grpc.ErrGrpcServer(err))
 		os.Exit(1)
 	}
+}
+func registerDynamicCapabilities(port string, log logger.Handler) {
+	registerWorkloads(port, log)
+	//Start the ticker
+	const reRegisterAfter = 24
+	ticker := time.NewTicker(reRegisterAfter * time.Hour)
+	for {
+		<-ticker.C
+		registerWorkloads(port, log)
+	}
+
+}
+
+func registerWorkloads(port string, log logger.Handler) {
+	crds := config.GetFileNames("https://api.github.com/repos/hashicorp/consul-k8s", "control-plane/config/crd/bases")
+	rel, err := config.GetLatestReleases(1)
+	if err != nil {
+		log.Info("Could not get latest version")
+		return
+	}
+	appVersion := rel[0].TagName
+	log.Info("Registering latest workload components for version ", appVersion)
+	// Register workloads
+	for _, manifest := range crds {
+		if err := adapter.RegisterWorkLoadsDynamically(mesheryServerAddress(), serviceAddress()+":"+port, &adapter.DynamicComponentsConfig{
+			TimeoutInMinutes: 30,
+			URL:              "https://raw.githubusercontent.com/hashicorp/consul-k8s/main/control-plane/config/crd/bases/" + manifest,
+			GenerationMethod: adapter.Manifests,
+			Config: manifests.Config{
+				Name:        smp.ServiceMesh_Type_name[int32(smp.ServiceMesh_CONSUL)],
+				MeshVersion: appVersion,
+				Filter: manifests.CrdFilter{
+					RootFilter:    []string{"$[?(@.kind==\"CustomResourceDefinition\")]"},
+					NameFilter:    []string{"$..[\"spec\"][\"names\"][\"kind\"]"},
+					VersionFilter: []string{"$..spec.versions[0]", " --o-filter", "$[0]"},
+					GroupFilter:   []string{"$..spec", " --o-filter", "$[]"},
+					SpecFilter:    []string{"$..openAPIV3Schema.properties.spec", " --o-filter", "$[]"},
+				},
+			},
+			Operation: internalconfig.ConsulOperation,
+		}); err != nil {
+			log.Info(err.Error())
+			return
+		}
+	}
+	log.Info("Latest workload components successfully registered.")
+}
+
+func mesheryServerAddress() string {
+	meshReg := os.Getenv("MESHERY_SERVER")
+
+	if meshReg != "" {
+		if strings.HasPrefix(meshReg, "http") {
+			return meshReg
+		}
+
+		return "http://" + meshReg
+	}
+
+	return "http://localhost:9081"
+}
+
+func serviceAddress() string {
+	svcAddr := os.Getenv("SERVICE_ADDR")
+
+	if svcAddr != "" {
+		return svcAddr
+	}
+
+	return "mesherylocal.layer5.io"
 }
