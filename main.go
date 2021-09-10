@@ -23,6 +23,7 @@ import (
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	configprovider "github.com/layer5io/meshery-adapter-library/config/provider"
+	"github.com/layer5io/meshery-consul/consul/oam"
 	"github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshery-consul/internal/operations"
 
@@ -87,6 +88,8 @@ func main() {
 	service.StartedAt = time.Now()
 	service.Version = version
 	service.GitSHA = gitsha
+
+	go registerCapabilities(service.Port, log)        //Registering static capabilities
 	go registerDynamicCapabilities(service.Port, log) //Registering latest capabilities periodically
 
 	// Server Initialization
@@ -97,6 +100,21 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+func registerCapabilities(port string, log logger.Handler) {
+
+	log.Info("Registring static workloads...")
+	// Register workloads
+	if err := oam.RegisterWorkloads(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
+		log.Info(err.Error())
+	}
+
+	// Register traits
+	if err := oam.RegisterTraits(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
+		log.Info(err.Error())
+	}
+}
+
 func registerDynamicCapabilities(port string, log logger.Handler) {
 	registerWorkloads(port, log)
 	//Start the ticker
