@@ -1,0 +1,20 @@
+{
+  "description": "MeshSpec defines the desired state of Mesh",
+  "properties": {
+    "transparentProxy": {
+      "description": "TransparentProxyMeshConfig controls configuration specific to proxies in \"transparent\" mode. Added in v1.10.0.",
+      "properties": {
+        "meshDestinationsOnly": {
+          "description": "MeshDestinationsOnly determines whether sidecar proxies operating in \"transparent\" mode can proxy traffic to IP addresses not registered in Consul's catalog. If enabled, traffic will only be proxied to upstreams with service registrations in the catalog.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    }
+  },
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "version": "v1.10.2",
+  "object-type": "Mesh",
+  "service-mesh": "Consul"
+}

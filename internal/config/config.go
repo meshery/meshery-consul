@@ -22,6 +22,12 @@ import (
 	"github.com/layer5io/meshkit/utils"
 )
 
+const (
+	// OAM Metadata constants
+	OAMAdapterNameMetadataKey       = "adapter.meshery.io/name"
+	OAMComponentCategoryMetadataKey = "ui.meshery.io/category"
+)
+
 var (
 	ConfigRootPath = path.Join(utils.GetHome(), ".meshery")
 )
