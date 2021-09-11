@@ -6,10 +6,10 @@ const (
 
 	// ErrGetLatestReleasesCode represents the error which occurs during the process of getting
 	// latest releases
-	ErrGetLatestReleasesCode = "blah1"
+	ErrGetLatestReleasesCode = "1001"
 	// ErrGetManifestNamesCode represents the error which occurs during the process of getting
 	// manifest names
-	ErrGetManifestNamesCode = "blah2"
+	ErrGetManifestNamesCode = "1002"
 )
 
 // ErrGetLatestReleases is the error for fetching consul releases
