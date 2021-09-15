@@ -2,7 +2,7 @@ name: Meshery Consul Pattern Components Generator
 on:
   push:
     branches:
-      - 'master'
+      - 'add-aom-workflowr'
 
 //add-aom-workflow
 
