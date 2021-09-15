@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 1
           token: ${{ secrets.GH_ACCESS_TOKEN }}
 
-      - name: Get Consul manifests
+      - name: Get Consul manifest
         run: |
           mkdir ./consul-crds
           cd ./consul-crds
