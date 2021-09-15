@@ -48,7 +48,7 @@ jobs:
 
       - name: Get Consul manifests
         run: |
-           mkdir ./consul-crds
+          mkdir ./consul-crds
           cd ./consul-crds
           curl --remote-name-all `curl -H "Accept: application/vnd.github.VERSION.raw" https://api.github.com/repos/hashicorp/consul-k8s/contents/control-plane/config/crd?ref=$NEW_CONSUL_VERSION| jq 'map(.download_url) | .[]' | tr -d '"'`
           cd ..
