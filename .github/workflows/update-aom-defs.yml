@@ -50,7 +50,7 @@ jobs:
         run: |
           mkdir ./consul-crds
           cd ./consul-crds
-          curl --remote-name-all `curl -H "Accept: application/vnd.github.VERSION.raw" https://api.github.com/repos/hashicorp/consul-k8s/contents/control-plane/config/crd?ref=$NEW_CONSUL_VERSION| jq 'map(.download_url) | .[]' | tr -d '"'`
+          curl --remote-name-all `curl -H "Accept: application/vnd.github.VERSION.raw" https://api.github.com/repos/hashicorp/consul-k8s/contents/control-plane/config/crd/bases?ref\=$NEW_CONSUL_VERSION| jq 'map(.download_url) | .[]' | tr -d '"'`
           cd ..
           awk 'FNR==1 && NR>1 { printf("\n%s\n\n","---") } 1' consul-crds/*.yaml > ~/consul.yaml
       - name: Build jsonschema util
