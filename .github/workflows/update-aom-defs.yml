@@ -50,8 +50,8 @@ jobs:
         run: |
           mkdir ./consul-crds
           cd ./consul-crds
-          curl --remote-name-all `curl -H "Accept: application/vnd.github.VERSION.raw" https://api.github.com/repos/hashicorp/consul-k8s/contents/control-plane/config/crd/bases?ref\=$NEW_CONSUL_VERSION| jq 'map(.download_url) | .[]' | tr -d '"'`
-          cd ..
+          curl --remote-name-all `curl -H "Accept: application/vnd.github.VERSION.raw" https://api.github.com/repos/hashicorp/consul-k8s/contents/control-plane/config/crd/bases| jq 'map(.download_url) | .[]' | tr -d '"'`
+          cd ..  
           awk 'FNR==1 && NR>1 { printf("\n%s\n\n","---") } 1' consul-crds/*.yaml > ~/consul.yaml
       - name: Build jsonschema util
         run: |
@@ -69,8 +69,8 @@ jobs:
           dirPath=../templates/oam/workloads/workloads-$NEW_CONSUL_VERSION
           cd util
           mkdir -p $dirPath
-          meshName=Istio
-          smpMeshName=ISTIO
+          meshName=Consul
+          smpMeshName=CONSUL
           template='{"apiVersion":"core.oam.dev/v1alpha1","kind":"WorkloadDefinition","metadata":{},"spec":{"definitionRef":{},"metadata":{"@type":"pattern.meshery.io/mesh/workload","meshVersion":"'$NEW_CONSUL_VERSION'","meshName":"'$smpMeshName'","k8sAPIVersion":null,"k8sKind":""}}}'
           crds=$(./kubeopenapi-jsonschema --location ~/consul.yml -t yaml --filter '$[?(@.kind=="CustomResourceDefinition")]' -o json --o-filter '$..["spec"]["names"]["kind"]' | jq '.[]')
           for t in ${crds[@]}; do
@@ -82,7 +82,7 @@ jobs:
             ./kubeopenapi-jsonschema --location ~/consul.yml -t yaml --filter '$[?(@.kind=="CustomResourceDefinition" && @.spec.names.kind=='$t')]..openAPIV3Schema.properties.spec' --o-filter "$[]" -o json |\
             jq '
             .[]
-            | .version = "'$NEW_CONSUK_VERSION'"
+            | .version = "'$NEW_CONSUL_VERSION'"
             | ."object-type" = "'$nameUpper'"
             | ."service-mesh" = "'$meshName'" ' > $dirPath/$nameLower.consul.meshery.layer5io.schema.json
             echo $template |\
