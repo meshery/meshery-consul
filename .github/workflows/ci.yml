@@ -38,7 +38,7 @@ jobs:
       with:
         fetch-depth: 1
     - name: Setup Go
-      uses: actions/setup-go@v1
+      uses: actions/setup-go@v2
       with:
         go-version: ${{ secrets.GO_VERSION }}
     - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go build .
@@ -61,7 +61,7 @@ jobs:
         with:
           name: meshery-consul
       - name: Setup go
-        uses: actions/setup-go@v1
+        uses: actions/setup-go@v2
         with:
           go-version: ${{ secrets.GO_VERSION }}
       - name: Create k8s Kind Cluster
