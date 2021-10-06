@@ -105,5 +105,3 @@ jobs:
           commit_options: '--signoff'
           commit_message: "[Patterns] Pattern components generated from latest Consul manifests"
           branch: master
-
-    
