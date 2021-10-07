@@ -102,8 +102,7 @@ func main() {
 }
 
 func registerCapabilities(port string, log logger.Handler) {
-
-	log.Info("Registring static workloads...")
+	log.Info("Registering static workloads...")
 	// Register workloads
 	if err := oam.RegisterWorkloads(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
 		log.Info(err.Error())
