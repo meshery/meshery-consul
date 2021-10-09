@@ -13,6 +13,8 @@ RUN apk --update add ca-certificates && \
     ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
 
 USER appuser
+ENV SERVICE_ADDR="meshery-consul"
+ENV MESHERY_SERVER="http://meshery:9081"
 RUN mkdir -p /home/appuser/.kube
 RUN mkdir -p /home/appuser/.meshery
 WORKDIR /home/appuser
