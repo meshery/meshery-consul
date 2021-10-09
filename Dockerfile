@@ -16,6 +16,7 @@ USER appuser
 RUN mkdir -p /home/appuser/.kube
 RUN mkdir -p /home/appuser/.meshery
 WORKDIR /home/appuser
+COPY templates ./templates
 COPY --from=bd /meshery-consul /home/appuser
 COPY --from=bd /consul /home/appuser/consul
 CMD ./meshery-consul
