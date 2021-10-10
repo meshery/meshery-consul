@@ -41,7 +41,7 @@ var (
 )
 
 func main() {
-	log, err := logger.New(serviceName, logger.Options{Format: logger.JsonLogFormat, DebugLevel: false})
+	log, err := logger.New(serviceName, logger.Options{Format: logger.SyslogLogFormat, DebugLevel: isDebug()})
 	if err != nil {
 		fmt.Println("Logger Init Failed", err.Error())
 		os.Exit(1)
@@ -105,12 +105,12 @@ func registerCapabilities(port string, log logger.Handler) {
 	log.Info("Registering static workloads...")
 	// Register workloads
 	if err := oam.RegisterWorkloads(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
-		log.Info(err.Error())
+		log.Error(err)
 	}
 
 	// Register traits
 	if err := oam.RegisterTraits(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
-		log.Info(err.Error())
+		log.Error(err)
 	}
 }
 
@@ -140,8 +140,9 @@ func registerWorkloads(port string, log logger.Handler) {
 	log.Info("Registering latest workload components for version ", appVersion)
 	// Register workloads
 	for _, manifest := range crds {
+		log.Info("Registering for ", manifest)
 		if err := adapter.RegisterWorkLoadsDynamically(mesheryServerAddress(), serviceAddress()+":"+port, &adapter.DynamicComponentsConfig{
-			TimeoutInMinutes: 30,
+			TimeoutInMinutes: 60,
 			URL:              "https://raw.githubusercontent.com/hashicorp/consul-k8s/main/control-plane/config/crd/bases/" + manifest,
 			GenerationMethod: adapter.Manifests,
 			Config: manifests.Config{
@@ -150,16 +151,21 @@ func registerWorkloads(port string, log logger.Handler) {
 				Filter: manifests.CrdFilter{
 					RootFilter:    []string{"$[?(@.kind==\"CustomResourceDefinition\")]"},
 					NameFilter:    []string{"$..[\"spec\"][\"names\"][\"kind\"]"},
-					VersionFilter: []string{"$..spec.versions[0]", " --o-filter", "$[0]"},
-					GroupFilter:   []string{"$..spec", " --o-filter", "$[]"},
-					SpecFilter:    []string{"$..openAPIV3Schema.properties.spec", " --o-filter", "$[]"},
+					VersionFilter: []string{"$[0]..spec.versions[0]"},
+					GroupFilter:   []string{"$[0]..spec"},
+					SpecFilter:    []string{"$[0]..openAPIV3Schema.properties.spec"},
+					ItrFilter:     []string{"$[?(@.spec.names.kind"},
+					ItrSpecFilter: []string{"$[?(@.spec.names.kind"},
+					VField:        "name",
+					GField:        "group",
 				},
 			},
 			Operation: config.ConsulOperation,
 		}); err != nil {
-			log.Info(err.Error())
+			log.Error(err)
 			return
 		}
+		log.Info(manifest, " registered")
 	}
 	log.Info("Latest workload components successfully registered.")
 }
@@ -186,4 +192,7 @@ func serviceAddress() string {
 	}
 
 	return "mesherylocal.layer5.io"
+}
+func isDebug() bool {
+	return os.Getenv("DEBUG") == "true"
 }

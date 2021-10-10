@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -68,7 +69,7 @@ type roottree struct {
 	URL string `json:"url"`
 }
 type treeslice struct {
-	Tree []map[string]string `json:"tree"`
+	Tree []map[string]interface{} `json:"tree"`
 }
 
 // GetFileNames takes the url of a github repo and the path to a directory. Then returns all the filenames from that directory
@@ -90,6 +91,9 @@ func GetFileNames(url string, path string) ([]string, error) {
 	shaurl := r[0].Commit.Tree.URL
 	bpath := strings.Split(path, "/")
 	ans, err := _getname(shaurl, bpath)
+	if err == nil {
+		return ans, nil
+	}
 	return ans, ErrGetManifestNames(err)
 }
 
@@ -114,8 +118,13 @@ func _getname(shaURL string, bpath []string) ([]string, error) {
 		bpath = bpath[1:]
 
 		for _, c := range t.Tree {
+			var url string
+			var ok bool
+			if url, ok = c["url"].(string); !ok {
+				return nil, errors.New("shit")
+			}
 			if c["path"] == dirName {
-				tempans, err := _getname(c["url"], bpath)
+				tempans, err := _getname(url, bpath)
 				return tempans, err
 			}
 		}
@@ -124,7 +133,12 @@ func _getname(shaURL string, bpath []string) ([]string, error) {
 
 	//base case
 	for _, c := range t.Tree {
-		ans = append(ans, c["path"])
+		var path string
+		var ok bool
+		if path, ok = c["path"].(string); !ok {
+			return nil, errors.New("shit")
+		}
+		ans = append(ans, path)
 	}
-	return ans, err
+	return ans, nil
 }
