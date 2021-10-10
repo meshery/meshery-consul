@@ -123,7 +123,7 @@ func _getname(shaURL string, bpath []string) ([]string, error) {
 				ok  bool
 			)
 			if url, ok = c["url"].(string); !ok {
-				return nil, errors.New("Invalid URL field")
+				return nil, errors.New("invalid URL field")
 			}
 			if c["path"] == dirName {
 				tempans, err := _getname(url, bpath)
@@ -140,7 +140,7 @@ func _getname(shaURL string, bpath []string) ([]string, error) {
 			ok   bool
 		)
 		if path, ok = c["path"].(string); !ok {
-			return nil, errors.New("Invalid path field")
+			return nil, errors.New("invalid path field")
 		}
 		ans = append(ans, path)
 	}
