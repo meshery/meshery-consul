@@ -128,7 +128,7 @@ func registerDynamicCapabilities(port string, log logger.Handler) {
 func registerWorkloads(port string, log logger.Handler) {
 	crds, err := config.GetFileNames("https://api.github.com/repos/hashicorp/consul-k8s", "control-plane/config/crd/bases")
 	if err != nil {
-		log.Info("Could not get manifest names ", err.Error())
+		log.Error(err)
 		return
 	}
 	rel, err := config.GetLatestReleases(1)

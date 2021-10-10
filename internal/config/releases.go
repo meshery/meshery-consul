@@ -118,10 +118,12 @@ func _getname(shaURL string, bpath []string) ([]string, error) {
 		bpath = bpath[1:]
 
 		for _, c := range t.Tree {
-			var url string
-			var ok bool
+			var (
+				url string
+				ok  bool
+			)
 			if url, ok = c["url"].(string); !ok {
-				return nil, errors.New("shit")
+				return nil, errors.New("Invalid URL field")
 			}
 			if c["path"] == dirName {
 				tempans, err := _getname(url, bpath)
@@ -133,10 +135,12 @@ func _getname(shaURL string, bpath []string) ([]string, error) {
 
 	//base case
 	for _, c := range t.Tree {
-		var path string
-		var ok bool
+		var (
+			path string
+			ok   bool
+		)
 		if path, ok = c["path"].(string); !ok {
-			return nil, errors.New("shit")
+			return nil, errors.New("Invalid path field")
 		}
 		ans = append(ans, path)
 	}
