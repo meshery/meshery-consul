@@ -98,11 +98,16 @@ func (h *Consul) applyHelmChart(request adapter.OperationRequest, operation adap
 	if err != nil {
 		return status, ErrApplyOperation(err)
 	}
-
+	var act mesherykube.HelmChartAction
+	if request.IsDeleteOperation {
+		act = mesherykube.UNINSTALL
+	} else {
+		act = mesherykube.INSTALL
+	}
 	err = kubeClient.ApplyHelmChart(mesherykube.ApplyHelmChartConfig{
 		Namespace:       request.Namespace,
 		CreateNamespace: true,
-		Delete:          request.IsDeleteOperation,
+		Action:          act,
 		ChartLocation: mesherykube.HelmChartLocation{
 			Repository: operation.AdditionalProperties[config.HelmChartRepositoryKey],
 			Chart:      operation.AdditionalProperties[config.HelmChartChartKey],

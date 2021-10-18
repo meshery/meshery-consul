@@ -22,10 +22,9 @@ import (
 	"time"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
-	configprovider "github.com/layer5io/meshery-adapter-library/config/provider"
 	"github.com/layer5io/meshery-consul/consul/oam"
 	"github.com/layer5io/meshery-consul/internal/config"
-	"github.com/layer5io/meshery-consul/internal/operations"
+	configprovider "github.com/layer5io/meshkit/config/provider"
 
 	"github.com/layer5io/meshery-adapter-library/api/grpc"
 	"github.com/layer5io/meshery-consul/consul"
@@ -47,13 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg, err := config.New(configprovider.Options{
-		ServerConfig:   config.ServerDefaults,
-		MeshSpec:       config.MeshSpecDefaults,
-		ProviderConfig: config.ViperDefaults,
-		Operations:     operations.Operations,
-	},
-	)
+	cfg, err := config.New(configprovider.ViperKey)
 
 	if err != nil {
 		log.Error(err)
@@ -63,9 +56,7 @@ func main() {
 	service := &grpc.Service{}
 	_ = cfg.GetObject(adapter.ServerKey, &service)
 
-	kubeCfg, err := config.New(configprovider.Options{
-		ProviderConfig: config.KubeConfigDefaults,
-	})
+	kubeCfg, err := config.NewKubeconfigBuilder(configprovider.ViperKey)
 
 	if err != nil {
 		log.Error(err)
