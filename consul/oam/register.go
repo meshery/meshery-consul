@@ -31,7 +31,7 @@ func RegisterWorkloads(runtime, host string) error {
 
 	pathSets, err := load(workloadPath)
 	if err != nil {
-		return err
+		return ErrLoadingPathset(err)
 	}
 
 	for _, pathSet := range pathSets {
@@ -65,7 +65,7 @@ func RegisterTraits(runtime, host string) error {
 
 	pathSets, err := load(traitPath)
 	if err != nil {
-		return err
+		return ErrLoadingPathset(err)
 	}
 
 	for _, pathSet := range pathSets {
