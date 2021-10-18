@@ -17,8 +17,9 @@ package config
 import (
 	"path"
 
+	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-adapter-library/config"
-	"github.com/layer5io/meshery-adapter-library/config/provider"
+	configprovider "github.com/layer5io/meshkit/config/provider"
 	"github.com/layer5io/meshkit/utils"
 )
 
@@ -32,6 +33,68 @@ var (
 	ConfigRootPath = path.Join(utils.GetHome(), ".meshery")
 )
 
-func New(options provider.Options) (config.Handler, error) {
-	return provider.NewViper(options)
+// New creates a new config instance
+func New(provider string) (h config.Handler, err error) {
+	opts := configprovider.Options{
+		FilePath: ConfigRootPath,
+		FileName: "consul",
+		FileType: "yaml",
+	}
+	// Config provider
+	switch provider {
+	case configprovider.ViperKey:
+		h, err = configprovider.NewViper(opts)
+		if err != nil {
+			return nil, err
+		}
+	case configprovider.InMemKey:
+		h, err = configprovider.NewInMem(opts)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, ErrEmptyConfig
+	}
+
+	// Setup Server config
+	if err := h.SetObject(adapter.ServerKey, ServerDefaults); err != nil {
+		return nil, err
+	}
+
+	// setup Mesh config
+	if err := h.SetObject(adapter.MeshSpecKey, MeshSpecDefaults); err != nil {
+		return nil, err
+	}
+
+	// setup Operation Config
+	if err := h.SetObject(adapter.OperationsKey, Operations); err != nil {
+		return nil, err
+	}
+
+	return h, nil
+}
+
+// NewKubeconfigBuilder returns a config handler based on the provider
+//
+// Valid providers are "viper" and "in-mem"
+func NewKubeconfigBuilder(provider string) (config.Handler, error) {
+	opts := configprovider.Options{
+		FilePath: ConfigRootPath,
+		FileType: "yaml",
+		FileName: "kubeconfig",
+	}
+
+	// Config provider
+	switch provider {
+	case configprovider.ViperKey:
+		return configprovider.NewViper(opts)
+	case configprovider.InMemKey:
+		return configprovider.NewInMem(opts)
+	}
+	return nil, ErrEmptyConfig
+}
+
+// RootPath returns the config root path for the adapter
+func RootPath() string {
+	return ConfigRootPath
 }

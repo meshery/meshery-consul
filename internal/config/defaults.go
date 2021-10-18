@@ -15,6 +15,7 @@
 package config
 
 import (
+	"github.com/layer5io/meshery-adapter-library/common"
 	configprovider "github.com/layer5io/meshery-adapter-library/config/provider"
 	"github.com/layer5io/meshery-adapter-library/status"
 	smp "github.com/layer5io/service-mesh-performance/spec"
@@ -45,4 +46,7 @@ var (
 		configprovider.FileType: "yaml",
 		configprovider.FileName: "kubeconfig",
 	}
+	// Operations represents the set of valid operations that are available
+	// to the adapter
+	Operations = getOperations(common.Operations)
 )
