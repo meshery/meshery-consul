@@ -27,6 +27,11 @@ import (
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 )
 
+const (
+	repo  = "https://helm.releases.hashicorp.com"
+	chart = "consul"
+)
+
 func (h *Consul) installConsul(del bool, version, namespace string) (string, error) {
 	h.Log.Debug(fmt.Sprintf("Requested install of version: %s", version))
 	h.Log.Debug(fmt.Sprintf("Requested action is delete: %v", del))
@@ -118,8 +123,8 @@ func (h *Consul) applyHelmChart(del bool, version string, ns string) (string, er
 		CreateNamespace: true,
 		Action:          act,
 		ChartLocation: mesherykube.HelmChartLocation{
-			Repository: "https://helm.releases.hashicorp.com",
-			Chart:      "consul",
+			Repository: repo,
+			Chart:      chart,
 			Version:    version,
 		},
 	})
