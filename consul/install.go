@@ -19,18 +19,41 @@ import (
 	"io/ioutil"
 	"path"
 
-	"helm.sh/helm/v3/pkg/cli"
-	"helm.sh/helm/v3/pkg/cli/values"
-	"helm.sh/helm/v3/pkg/getter"
-
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-adapter-library/meshes"
+	"github.com/layer5io/meshery-adapter-library/status"
 	opstatus "github.com/layer5io/meshery-adapter-library/status"
-	"github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshkit/utils"
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 )
 
+func (h *Consul) installConsul(del bool, version, namespace string) (string, error) {
+	h.Log.Debug(fmt.Sprintf("Requested install of version: %s", version))
+	h.Log.Debug(fmt.Sprintf("Requested action is delete: %v", del))
+	h.Log.Debug(fmt.Sprintf("Requested action is in namespace: %s", namespace))
+
+	st := status.Installing
+	if del {
+		st = status.Removing
+	}
+
+	err := h.Config.GetObject(adapter.MeshSpecKey, h)
+	if err != nil {
+		return st, ErrMeshConfig(err)
+	}
+
+	_, err = h.applyHelmChart(del, version, namespace)
+	if err != nil {
+		return st, ErrApplyHelmChart(err)
+	}
+
+	st = status.Installed
+	if del {
+		st = status.Removed
+	}
+
+	return st, nil
+}
 func (h *Consul) applyManifests(request adapter.OperationRequest, operation adapter.Operation, kubeClient mesherykube.Client) (string, error) {
 	status := opstatus.Installing
 
@@ -80,40 +103,25 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 // The chart is the only required value, defaults are handled by ApplyHelmChart from meshkit.
 // The values-file is expected in the consul/config_templates folder. It corresponds to a file specified
 // by the -f (--values) flag of the Helm CLI.
-func (h *Consul) applyHelmChart(request adapter.OperationRequest, operation adapter.Operation, kubeClient mesherykube.Client) (string, error) {
+func (h *Consul) applyHelmChart(del bool, version string, ns string) (string, error) {
 	status := opstatus.Installing
-
-	if request.IsDeleteOperation {
-		status = opstatus.Removing
-	}
-
-	h.Log.Info(fmt.Sprintf("%s %s", status, operation.Description))
-
-	p := getter.All(cli.New())
-	valueOpts := &values.Options{}
-	if valuesFile, ok := operation.AdditionalProperties[config.HelmChartValuesFileKey]; ok {
-		valueOpts.ValueFiles = []string{path.Join("consul", "config_templates", valuesFile)}
-	}
-	vals, err := valueOpts.MergeValues(p)
-	if err != nil {
-		return status, ErrApplyOperation(err)
-	}
 	var act mesherykube.HelmChartAction
-	if request.IsDeleteOperation {
+	if del {
+		status = opstatus.Removing
 		act = mesherykube.UNINSTALL
 	} else {
 		act = mesherykube.INSTALL
 	}
-	err = kubeClient.ApplyHelmChart(mesherykube.ApplyHelmChartConfig{
-		Namespace:       request.Namespace,
+
+	err := h.MesheryKubeclient.ApplyHelmChart(mesherykube.ApplyHelmChartConfig{
+		Namespace:       ns,
 		CreateNamespace: true,
 		Action:          act,
 		ChartLocation: mesherykube.HelmChartLocation{
-			Repository: operation.AdditionalProperties[config.HelmChartRepositoryKey],
-			Chart:      operation.AdditionalProperties[config.HelmChartChartKey],
-			Version:    operation.AdditionalProperties[config.HelmChartVersionKey],
+			Repository: "https://helm.releases.hashicorp.com",
+			Chart:      "consul",
+			Version:    version,
 		},
-		OverrideValues: vals,
 	})
 	if err != nil {
 		return status, ErrApplyOperation(err)

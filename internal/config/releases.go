@@ -27,7 +27,7 @@ type Asset struct {
 	DownloadURL string `json:"browser_download_url,omitempty"`
 }
 
-// GetLatestReleases fetches the latest releases from the traefik mesh repository
+// GetLatestReleases fetches the latest releases from the Consul mesh repository
 func GetLatestReleases(releases uint) ([]*Release, error) {
 	releaseAPIURL := "https://api.github.com/repos/hashicorp/consul-k8s/releases?per_page" + fmt.Sprint(releases)
 	// We need a variable url here hence using nosec
@@ -76,7 +76,7 @@ type treeslice struct {
 func GetFileNames(url string, path string) ([]string, error) {
 	res, err := http.Get(url + "/commits") //url="https://api.github.com/repos/hashicorp/consul-k8s"
 	if err != nil {
-		return nil, err
+		return nil, ErrGetManifestNames(err)
 	}
 	defer res.Body.Close()
 	content, err := ioutil.ReadAll(res.Body)
@@ -86,7 +86,7 @@ func GetFileNames(url string, path string) ([]string, error) {
 	var r []rootdir
 	err = json.Unmarshal(content, &r)
 	if err != nil {
-		return nil, err
+		return nil, ErrGetManifestNames(err)
 	}
 	shaurl := r[0].Commit.Tree.URL
 	bpath := strings.Split(path, "/")
