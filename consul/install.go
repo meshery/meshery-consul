@@ -21,7 +21,7 @@ import (
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-adapter-library/meshes"
-	"github.com/layer5io/meshery-adapter-library/status"
+
 	opstatus "github.com/layer5io/meshery-adapter-library/status"
 	"github.com/layer5io/meshkit/utils"
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
@@ -32,9 +32,9 @@ func (h *Consul) installConsul(del bool, version, namespace string) (string, err
 	h.Log.Debug(fmt.Sprintf("Requested action is delete: %v", del))
 	h.Log.Debug(fmt.Sprintf("Requested action is in namespace: %s", namespace))
 
-	st := status.Installing
+	st := opstatus.Installing
 	if del {
-		st = status.Removing
+		st = opstatus.Removing
 	}
 
 	err := h.Config.GetObject(adapter.MeshSpecKey, h)
@@ -47,9 +47,9 @@ func (h *Consul) installConsul(del bool, version, namespace string) (string, err
 		return st, ErrApplyHelmChart(err)
 	}
 
-	st = status.Installed
+	st = opstatus.Installed
 	if del {
-		st = status.Removed
+		st = opstatus.Removed
 	}
 
 	return st, nil
