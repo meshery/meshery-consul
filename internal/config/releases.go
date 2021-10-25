@@ -99,7 +99,7 @@ func GetFileNames(url string, path string) ([]string, error) {
 
 func _getname(shaURL string, bpath []string) ([]string, error) {
 	var ans []string
-	res, err := http.Get(shaURL)
+	res, err := http.Get(shaURL) // #nosec
 	if err != nil {
 		return []string{}, err
 	}
