@@ -42,9 +42,9 @@ func ErrProcessOAM(err error) error {
 	return errors.New(ErrProcessOAMCode, errors.Alert, []string{"error performing OAM operations"}, []string{err.Error()}, []string{}, []string{})
 }
 
-// ErrApplyHelmChart is the error for applying helm chart
+// ErrApplyHelmChart is the error which occurs in the process of applying helm chart
 func ErrApplyHelmChart(err error) error {
-	return errors.New(ErrApplyHelmChartCode, errors.Alert, []string{"Error occurred while applying Helm Chart"}, []string{err.Error()}, []string{}, []string{})
+	return errors.New(ErrApplyHelmChartCode, errors.Alert, []string{"Error applying helm chart"}, []string{err.Error()}, []string{"Chart could be invalid"}, []string{"Make sure to apply valid chart"})
 }
 
 // ErrMeshConfig is the error for mesh config
@@ -54,10 +54,10 @@ func ErrMeshConfig(err error) error {
 
 // ErrConsulCoreComponentFail is the error when core Consul component processing fails
 func ErrConsulCoreComponentFail(err error) error {
-	return errors.New(ErrConsulCoreComponentFailCode, errors.Alert, []string{"error in Consul core component"}, []string{err.Error()}, []string{}, []string{})
+	return errors.New(ErrConsulCoreComponentFailCode, errors.Alert, []string{"error in Consul core component"}, []string{err.Error()}, []string{"API version or Kind passed is empty"}, []string{"Make sure API version and Kind are not empty"})
 }
 
 // ErrParseConsulCoreComponent is the error when Consul core component manifest parsing fails
 func ErrParseConsulCoreComponent(err error) error {
-	return errors.New(ErrParseConsulCoreComponentCode, errors.Alert, []string{"Consul core component manifest parsing failing"}, []string{err.Error()}, []string{}, []string{})
+	return errors.New(ErrParseConsulCoreComponentCode, errors.Alert, []string{"Consul core component manifest parsing failing"}, []string{err.Error()}, []string{"Could not marshall generated component to YAML"}, []string{})
 }
