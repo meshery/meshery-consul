@@ -44,7 +44,7 @@ func ErrProcessOAM(err error) error {
 
 // ErrApplyHelmChart is the error which occurs in the process of applying helm chart
 func ErrApplyHelmChart(err error) error {
-	return errors.New(ErrApplyHelmChartCode, errors.Alert, []string{"Error applying helm chart"}, []string{err.Error()}, []string{"Chart could be invalid"}, []string{"Make sure to apply valid chart"})
+	return errors.New(ErrApplyHelmChartCode, errors.Alert, []string{"Error applying helm chart"}, []string{err.Error()}, []string{"Chart could be invalid"}, []string{"Use `helm verify` and `helm lint` to verify chart path and validity"})
 }
 
 // ErrMeshConfig is the error for mesh config
