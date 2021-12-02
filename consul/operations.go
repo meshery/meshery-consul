@@ -55,8 +55,8 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	opDesc := operation.Description
 
 	switch request.OperationName {
-	case config.Consul191DemoOperation: // Apply Helm chart operations
-		if status, err := h.applyHelmChart(request, *operation, *h.MesheryKubeclient); err != nil {
+	case config.ConsulOperation: // Apply Helm chart operations
+		if status, err := h.applyHelmChart(request.IsDeleteOperation, operation.AdditionalProperties[config.HelmChartVersionKey], request.Namespace); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
