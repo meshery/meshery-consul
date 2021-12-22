@@ -1,5 +1,5 @@
 {
-  "name": "consul",
+  "name": "meshery-consul",
   "type": "adapter",
   "next_error_code": 1003
 }
