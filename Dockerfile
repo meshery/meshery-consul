@@ -1,4 +1,4 @@
-FROM golang:1.16 as bd
+FROM golang:1.17 as bd
 ARG VERSION
 ARG GIT_COMMITSHA
 WORKDIR /github.com/layer5io/meshery-consul
@@ -6,7 +6,7 @@ ADD . .
 RUN GOPROXY=direct GOSUMDB=off go build -ldflags="-w -s -X main.version=$VERSION -X main.gitsha=$GIT_COMMITSHA" -a -o /meshery-consul .
 RUN find . -name "*.go" -type f -delete; mv consul /
 
-FROM alpine
+FROM alpine:3.15
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 RUN apk --update add ca-certificates && \
     mkdir /lib64 && \
