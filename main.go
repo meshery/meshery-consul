@@ -35,7 +35,7 @@ import (
 
 var (
 	serviceName = "consul-adapter"
-	version     = "none"
+	version     = "edge"
 	gitsha      = "none"
 )
 
