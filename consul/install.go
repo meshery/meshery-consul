@@ -122,6 +122,11 @@ func (h *Consul) applyHelmChart(del bool, version string, ns string) (string, er
 		Namespace:       ns,
 		CreateNamespace: true,
 		Action:          act,
+		OverrideValues: map[string]interface{}{
+			"server": map[string]interface{}{
+				"affinity": nil, //By default Consul does not allow more than one server pods on a single node
+			},
+		},
 		ChartLocation: mesherykube.HelmChartLocation{
 			Repository: repo,
 			Chart:      chart,
