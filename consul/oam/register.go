@@ -12,7 +12,7 @@ import (
 
 var (
 	basePath, _  = os.Getwd()
-	workloadPath = filepath.Join(basePath, "templates", "oam", "workloads")
+	WorkloadPath = filepath.Join(basePath, "templates", "oam", "workloads")
 	traitPath    = filepath.Join(basePath, "templates", "oam", "traits")
 )
 
@@ -22,17 +22,15 @@ type schemaDefinitionPathSet struct {
 	name              string
 }
 
+var AvailableVersions = map[string]bool{}
+var pathSets []schemaDefinitionPathSet
+
 // RegisterWorkloads will register all of the workload definitions
 // present in the path oam/workloads
 //
 // Registration process will send POST request to $runtime/api/oam/workload
 func RegisterWorkloads(runtime, host string) error {
 	oamRDP := []adapter.OAMRegistrantDefinitionPath{}
-
-	pathSets, err := load(workloadPath)
-	if err != nil {
-		return ErrLoadingPathset(err)
-	}
 
 	for _, pathSet := range pathSets {
 		metadata := map[string]string{
@@ -108,6 +106,7 @@ func load(basePath string) ([]schemaDefinitionPathSet, error) {
 				jsonSchemaPath:    fmt.Sprintf("%s.meshery.layer5io.schema.json", nameWithPath),
 				name:              filepath.Base(nameWithPath),
 			})
+			AvailableVersions[filepath.Base(filepath.Dir(path))] = true
 		}
 
 		return nil
@@ -116,4 +115,13 @@ func load(basePath string) ([]schemaDefinitionPathSet, error) {
 	}
 
 	return res, nil
+}
+
+func init() {
+	var err error
+	pathSets, err = load(WorkloadPath)
+	if err != nil {
+		fmt.Println("Error while loading components: ", err.Error())
+	}
+
 }
