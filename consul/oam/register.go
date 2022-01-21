@@ -123,5 +123,4 @@ func init() {
 	if err != nil {
 		fmt.Println("Error while loading components: ", err.Error())
 	}
-
 }
