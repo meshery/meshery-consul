@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -27,10 +28,9 @@ import (
 	configprovider "github.com/layer5io/meshkit/config/provider"
 
 	"github.com/layer5io/meshery-adapter-library/api/grpc"
+	"github.com/layer5io/meshery-consul/build"
 	"github.com/layer5io/meshery-consul/consul"
 	"github.com/layer5io/meshkit/logger"
-	"github.com/layer5io/meshkit/utils/manifests"
-	smp "github.com/layer5io/service-mesh-performance/spec"
 )
 
 var (
@@ -117,48 +117,50 @@ func registerDynamicCapabilities(port string, log logger.Handler) {
 }
 
 func registerWorkloads(port string, log logger.Handler) {
-	log.Info("Fetching crd names for registering oam components...")
-	crds, err := config.GetFileNames("hashicorp", "consul-k8s", "control-plane/config/crd/bases/")
-	if err != nil {
-		log.Error(err)
+	log.Info("Registering latest workload components for version ", version)
+	version := build.LatestVersion
+	gm := build.DefaultGenerationMethod
+
+	// Prechecking to skip comp gen
+	if os.Getenv("FORCE_DYNAMIC_REG") != "true" && oam.AvailableVersions[version] {
+		log.Info("Components available statically for version ", version, ". Skipping dynamic component registeration")
 		return
 	}
-	log.Info("CRD names fetched successfully")
-	rel, err := config.GetLatestReleases(1)
-	if err != nil {
-		log.Info("Could not get latest version ", err.Error())
-		return
+	//If a URL is passed from env variable, it will be used for component generation with default method being "using manifests"
+	// In case a helm chart URL is passed, COMP_GEN_METHOD env variable should be set to Helm otherwise the component generation fails
+	if os.Getenv("COMP_GEN_URL") != "" && (os.Getenv("COMP_GEN_METHOD") == "Helm" || os.Getenv("COMP_GEN_METHOD") == "Manifest") {
+		build.OverrideURL = os.Getenv("COMP_GEN_URL")
+		gm = os.Getenv("COMP_GEN_METHOD")
+		log.Info("Registering workload components from url ", build.OverrideURL, " using ", gm, " method...")
+		build.CRDnames = []string{"user passed configuration"}
 	}
-	appVersion := rel[0].TagName
-	log.Info("Registering latest workload components for version ", appVersion)
 	// Register workloads
-	for _, manifest := range crds {
+	for _, manifest := range build.CRDnames {
 		log.Info("Registering for ", manifest)
-		if err := adapter.RegisterWorkLoadsDynamically(mesheryServerAddress(), serviceAddress()+":"+port, &adapter.DynamicComponentsConfig{
-			TimeoutInMinutes: 60,
-			URL:              "https://raw.githubusercontent.com/hashicorp/consul-k8s/main/control-plane/config/crd/bases/" + manifest,
-			GenerationMethod: adapter.Manifests,
-			Config: manifests.Config{
-				Name:        smp.ServiceMesh_Type_name[int32(smp.ServiceMesh_CONSUL)],
-				MeshVersion: appVersion,
-				Filter: manifests.CrdFilter{
-					RootFilter:    []string{"$[?(@.kind==\"CustomResourceDefinition\")]"},
-					NameFilter:    []string{"$..[\"spec\"][\"names\"][\"kind\"]"},
-					VersionFilter: []string{"$[0]..spec.versions[0]"},
-					GroupFilter:   []string{"$[0]..spec"},
-					SpecFilter:    []string{"$[0]..openAPIV3Schema.properties.spec"},
-					ItrFilter:     []string{"$[?(@.spec.names.kind"},
-					ItrSpecFilter: []string{"$[?(@.spec.names.kind"},
-					VField:        "name",
-					GField:        "group",
-				},
-			},
-			Operation: config.ConsulOperation,
+		if err := adapter.CreateComponents(adapter.StaticCompConfig{
+			URL:     build.GetDefaultURL(manifest),
+			Method:  gm,
+			Path:    build.WorkloadPath,
+			DirName: version,
+			Config:  build.NewConfig(version),
 		}); err != nil {
 			log.Error(err)
 			return
 		}
 		log.Info(manifest, " registered")
+	}
+
+	//*The below log is checked in the workflows. If you change this log, reflect that change in the workflow where components are generated
+	log.Info("Component creation completed for version ", version)
+
+	//Now we will register in case
+	log.Info("Registering workloads with Meshery Server for version ", version)
+	originalPath := oam.WorkloadPath
+	oam.WorkloadPath = filepath.Join(originalPath, version)
+	defer resetWorkloadPath(originalPath)
+	if err := oam.RegisterWorkloads(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
+		log.Info(err.Error())
+		return
 	}
 	log.Info("Latest workload components successfully registered.")
 }
@@ -188,4 +190,7 @@ func serviceAddress() string {
 }
 func isDebug() bool {
 	return os.Getenv("DEBUG") == "true"
+}
+func resetWorkloadPath(orig string) {
+	oam.WorkloadPath = orig
 }
