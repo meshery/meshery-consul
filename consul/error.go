@@ -27,10 +27,10 @@ var (
 	ErrMeshConfigCode               = "1005"
 	ErrConsulCoreComponentFailCode  = "1006"
 	ErrParseConsulCoreComponentCode = "1007"
-	
+
 	// ErrParseOAMComponent represents the error which is
  	// generated during the OAM component parsing
- 	ErrParseOAMComponent = errors.New(ErrParseOAMComponentCode, errors.Alert, []string{"error parsing the component"}, []string{"Error occurred while parsing application component in the OAM request made by Meshery server"}, []string{"Could not unmarshall configuration component received via ProcessOAM gRPC call into a valid Component struct"}, []string{"Check if Meshery Server is creating valid component for ProcessOAM gRPC call. This error should never happen and can be reported as a bug in Meshery Server. Also check if Meshery Server and adapters are referring to same component struct provided in MeshKit."})
+ 	ErrParseOAMComponent = errors.New(ErrParseOAMComponentCode, errors.Alert, []string{"error parsing the component"}, []string{"Error occurred while parsing application component in the OAM request made by Meshery Server"}, []string{"Could not unmarshall configuration component received via ProcessOAM gRPC call into a valid Component struct"}, []string{"Check if Meshery Server is creating valid component for ProcessOAM gRPC call. This error should never happen and can be reported as a bug in Meshery Server. Also, check if Meshery Server and adapters are referring to same component struct provided in MeshKit."})
 
  	// ErrParseOAMConfig represents the error which is
  	// generated during the OAM configuration parsing
