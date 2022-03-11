@@ -1,9 +1,8 @@
 module github.com/layer5io/meshery-consul
 
-go 1.16
+go 1.17
 
 replace (
-	github.com/docker/docker => github.com/moby/moby v17.12.0-ce-rc1.0.20200618181300-9dc6525e6118+incompatible
 	github.com/kudobuilder/kuttl => github.com/layer5io/kuttl v0.4.1-0.20200806180306-b7e46afd657f
 )
 
