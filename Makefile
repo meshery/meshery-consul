@@ -41,6 +41,7 @@ docker-run:
 
 .PHONY: run
 run:
+	go mod tidy;
 	DEBUG=true go run main.go
 
 .PHONY: error
