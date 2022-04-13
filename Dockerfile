@@ -18,7 +18,7 @@ ENV MESHERY_SERVER="http://meshery:9081"
 RUN mkdir -p /home/appuser/.kube
 RUN mkdir -p /home/appuser/.meshery
 WORKDIR /home/appuser
-COPY templates ./templates
+COPY templates/ ./templates
 COPY --from=bd /meshery-consul /home/appuser
 COPY --from=bd /consul /home/appuser/consul
 CMD ./meshery-consul
