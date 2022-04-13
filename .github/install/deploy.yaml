@@ -1,0 +1,7 @@
+name: ConsulMesh
+services:
+  linkerd:
+    type: ConsulMesh
+    namespace: consul-system
+    settings:
+      version:  #will be inserted dynamically
