@@ -43,7 +43,7 @@ jobs:
           name: patternfile
           path: ./.github/install/deploy.yaml
 
-  TestConsulForServicemeshInstall:
+  TestAdapterForServicemeshInstall:
     needs: SetPatternfileForServicemeshInstall
     uses: meshery/meshery/.github/workflows/testadapters.yaml@master  
     with: 
@@ -61,7 +61,7 @@ jobs:
       token: ${{ secrets.PROVIDER_TOKEN }}  
 
   UpdateDocsForServicemeshInstall:
-    needs: TestConsulForServicemeshInstall
+    needs: TestAdapterForServicemeshInstall
     if:  "always() && github.event_name != 'pull_request' "
     runs-on: ubuntu-latest
     steps:
