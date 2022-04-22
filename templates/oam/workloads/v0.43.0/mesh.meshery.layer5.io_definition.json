@@ -1,0 +1,20 @@
+{
+ "kind": "WorkloadDefinition",
+ "apiVersion": "core.oam.dev/v1alpha1",
+ "metadata": {
+  "name": "Mesh",
+  "creationTimestamp": null
+ },
+ "spec": {
+  "definitionRef": {
+   "name": "mesh.meshery.layer5.io"
+  },
+  "metadata": {
+   "@type": "pattern.meshery.io/mesh/workload",
+   "k8sAPIVersion": "consul.hashicorp.com/v1alpha1",
+   "k8sKind": "Mesh",
+   "meshName": "CONSUL",
+   "meshVersion": "v0.43.0"
+  }
+ }
+}
