@@ -5,3 +5,5 @@ services:
     namespace: consul
     settings:
       version:  #will be inserted dynamically
+
+      
