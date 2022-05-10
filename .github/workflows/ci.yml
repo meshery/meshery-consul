@@ -28,6 +28,59 @@ jobs:
 
           # Optional: show only new issues if it's a pull request. The default value is `false`.
           # only-new-issues: true
+  error_check:
+    name: Error check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - run: GOPROXY=https://proxy.golang.org,direct GOSUMDB=off GO111MODULE=on go get -u github.com/kisielk/errcheck; /home/runner/go/bin/errcheck -tags draft ./...        
+  static_check:
+    name: Static check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - run: GOPROXY=https://proxy.golang.org,direct GOSUMDB=off GO111MODULE=on go get -u honnef.co/go/tools/cmd/staticcheck; /home/runner/go/bin/staticcheck -tags draft -checks all ./consul/... # https://staticcheck.io/docs/checks
+  vet:
+    name: Vet
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@master
+        with:
+          fetch-depth: 1
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.17
+      - run: GOPROXY=https://proxy.golang.org,direct GOSUMDB=off GO111MODULE=on go vet -tags draft ./...
+  sec_check:
+    name: Security check
+    runs-on: ubuntu-latest
+    env:
+      GO111MODULE: on
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 1
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: -exclude=G301,G304,G107,G101,G110,G204,G409,G305,G302 ./... 
   build:
     name: Build check
     runs-on: ubuntu-latest
@@ -47,6 +100,31 @@ jobs:
       with:
         name: meshery-consul
         path: ./meshery-consul
+  tests:
+    #  needs: [lint, error_check, static_check, vet, sec_check]
+     name: Tests
+     runs-on: ubuntu-latest
+     env:
+       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+     steps:
+     - name: Check out code
+       uses: actions/checkout@master
+       with:
+        fetch-depth: 1
+     - name: Setup Go
+       uses: actions/setup-go@v2
+       with:
+        go-version: 1.17
+     - name: Create cluster using KinD
+       uses: engineerd/setup-kind@v0.3.0
+       with:
+         version: "v0.7.0"
+     - run: |
+         export CURRENTCONTEXT="$(kubectl config current-context)"
+         echo "current-context:" ${CURRENTCONTEXT}   
+         export KUBECONFIG="${HOME}/.kube/config"
+         echo "environment-kubeconfig:" ${KUBECONFIG}
+         GOPROXY=https://proxy.golang.org,direct GOSUMDB=off GO111MODULE=on go test -v ./...      
   e2e-tests:
     needs: [golangci, build]
     name: End-to-end tests
@@ -86,4 +164,5 @@ jobs:
           bats-version: 1.2.1
       - name: Test
         run: bats -r tests/e2e
+        
 
