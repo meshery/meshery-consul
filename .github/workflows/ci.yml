@@ -1,0 +1,91 @@
+name: Meshery Consul
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - 'v*'
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'      
+  pull_request:
+    branches:
+      - master
+jobs:
+  golangci:
+    name: golangci-lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: latest
+
+          # Optional: working directory, useful for monorepos
+          # working-directory: somedir
+
+          # Optional: golangci-lint command line arguments.
+          # args: --issues-exit-code=0
+
+          # Optional: show only new issues if it's a pull request. The default value is `false`.
+          # only-new-issues: true
+  build:
+    name: Build check
+    runs-on: ubuntu-latest
+    # needs: [lint, error_check, static_check, vet, sec_check, tests]
+    steps:
+    - name: Check out code
+      uses: actions/checkout@master
+      with:
+        fetch-depth: 1
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: '1.17'
+    - run: GOPROXY=direct GOSUMDB=off GO111MODULE=on go build .
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: meshery-consul
+        path: ./meshery-consul
+  e2e-tests:
+    needs: [golangci, build]
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Download artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: meshery-consul
+      - name: Setup go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.17'
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.2.0
+        with:
+          cluster_name: "kind-cluster"
+          node_image: kindest/node:v1.18.8
+      - name: Run meshery-consul
+        run: |
+          mkdir /home/runner/.meshery
+          chmod +x ./meshery-consul
+          ./meshery-consul &
+      - name: Install grpcurl
+        run: |
+          wget https://github.com/fullstorydev/grpcurl/releases/download/v1.8.0/grpcurl_1.8.0_linux_x86_64.tar.gz
+          tar -xvf grpcurl_1.8.0_linux_x86_64.tar.gz
+          chmod +x grpcurl
+          sudo mv grpcurl /usr/bin
+      - name: Setup BATS
+        uses: mig4/setup-bats@v1
+        with:
+          bats-version: 1.2.1
+      - name: Test
+        run: bats -r tests/e2e
