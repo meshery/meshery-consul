@@ -54,6 +54,7 @@ jobs:
       adapter_name: consul
       patternfile_name: deploy.yaml 
       provider: Local 
+      k8s_version: v1.20.1
       sm_version: ${{ needs.SetPatternfileForServicemeshInstall.outputs.sm_version }}
       adapter_version:  ${{ needs.SetPatternfileForServicemeshInstall.outputs.adapter_version }}
       output_filename: data.json
@@ -125,3 +126,4 @@ jobs:
           commit_author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           commit_options: '--signoff'
           commit_message: '[Docs] Test status of adapter'  
+          
