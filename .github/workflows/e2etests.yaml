@@ -49,8 +49,8 @@ jobs:
     with: 
       expected_pods: consul-connect-injector-webhook-deployment, consul-controller, consul-server, consul-webhook-cert-manager, consul, prometheus-server
       expected_pods_namespaces: consul, consul, consul, consul, consul, consul
-      deployment_url: raw.githubusercontent.com/meshery/meshery/blob/master/install/deployment_yamls/k8s/meshery-consul-deployment.yaml
-      service_url: raw.githubusercontent.com/meshery/blob/master/install/deployment_yamls/k8s/meshery-consul-service.yaml
+      deployment_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-deployment.yaml
+      service_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-service.yaml
       adapter_name: consul
       patternfile_name: deploy.yaml 
       provider: Local 
