@@ -31,7 +31,7 @@ jobs:
         id: gettag  
         uses: pozetroninc/github-action-get-latest-release@master
         with:
-          repository: hashicorp/consul
+          repository: hashicorp/consul-k8s
           excludes: prerelease, draft, edge  
       - name: Change service mesh version in patternfile
         run: | 
