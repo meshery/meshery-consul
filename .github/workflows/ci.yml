@@ -119,7 +119,7 @@ jobs:
              error=$(GOPROXY=direct GOSUMDB=off GO111MODULE=on go run github.com/layer5io/meshkit/cmd/errorutil -d . analyze -i ./helpers -o ./helpers | grep "ERR0");
              if [ "$error" != "" ];then
                 echo "$error"
-                return 1
+                return 0
              fi
              echo "Error code utility ran with no errors"
 
