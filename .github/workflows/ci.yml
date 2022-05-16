@@ -117,7 +117,8 @@ jobs:
         with:
           go-version: 1.17
       - name: Run Error code utility
-        run: error=$(go run github.com/layer5io/meshkit/cmd/errorutil -d . analyze -i ./helpers -o ./helpers | grep "ERR0") 
+        run: |
+             error=$(go run github.com/layer5io/meshkit/cmd/errorutil -d . analyze -i ./helpers -o ./helpers | grep "ERR0");
              if [ "$error" != "" ];then
                 echo "$error"
                 return 1
