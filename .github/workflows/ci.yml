@@ -71,14 +71,17 @@ jobs:
         with:
           go-version: 1.17
       - run: |
+            errWillHave="level=error"
             GOPROXY=https://proxy.golang.org,direct GOSUMDB=off GO111MODULE=on go install github.com/layer5io/meshkit/cmd/errorutil;
             err=$(/home/runner/go/bin/errorutil -d . update --skip-dirs meshery -i ./helpers -o ./helpers);
-            echo "ERR: $err"
-            err=$(echo $err | grep "level=error");
-            if [ "$err" != "" ];then
+            echo "ERR: $err";
+
+            if [[ $err == *"$errWillHave"* ]];
+            then
               echo "$err";
               return 1;
             fi
+            
   static_check:
     name: Static check
     runs-on: ubuntu-latest
