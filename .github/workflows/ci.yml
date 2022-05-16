@@ -105,8 +105,6 @@ jobs:
   error_code_check:
     name: Error code check
     runs-on: ubuntu-latest
-    env:
-      GO111MODULE: on
     steps:
       - name: Check out code
         uses: actions/checkout@v2
@@ -118,7 +116,7 @@ jobs:
           go-version: 1.17
       - name: Run Error code utility
         run: |
-             error=$(go run github.com/layer5io/meshkit/cmd/errorutil -d . analyze -i ./helpers -o ./helpers | grep "ERR0");
+             error=$(GOPROXY=direct GOSUMDB=off GO111MODULE=on go run github.com/layer5io/meshkit/cmd/errorutil -d . analyze -i ./helpers -o ./helpers | grep "ERR0");
              if [ "$error" != "" ];then
                 echo "$error"
                 return 1
