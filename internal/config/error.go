@@ -6,13 +6,13 @@ const (
 
 	// ErrGetLatestReleasesCode represents the error which occurs during the process of getting
 	// latest releases
-	ErrGetLatestReleasesCode = "1001"
+	ErrGetLatestReleasesCode = "1008"
 	// ErrGetManifestNamesCode represents the error which occurs during the process of getting
 	// manifest names
-	ErrGetManifestNamesCode = "1002"
+	ErrGetManifestNamesCode = "1009"
 	// ErrEmptyConfigCode represents the error when the configuration is either empty
 	// or is invalid
-	ErrEmptyConfigCode = "1003"
+	ErrEmptyConfigCode = "1010"
 )
 
 var (
