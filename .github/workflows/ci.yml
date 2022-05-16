@@ -72,7 +72,9 @@ jobs:
           go-version: 1.17
       - run: |
             GOPROXY=https://proxy.golang.org,direct GOSUMDB=off GO111MODULE=on go install github.com/layer5io/meshkit/cmd/errorutil;
-            err=$(/home/runner/go/bin/errorutil -d . update --skip-dirs meshery -i ./helpers -o ./helpers | grep "level=error");
+            err=$(/home/runner/go/bin/errorutil -d . update --skip-dirs meshery -i ./helpers -o ./helpers);
+            echo "ERR: $err"
+            err=$(echo $err | grep "level=error");
             if [ "$err" != "" ];then
               echo "$err";
               return 1;
