@@ -3,7 +3,7 @@ package oam
 import "github.com/layer5io/meshkit/errors"
 
 const (
-	ErrLoadingPathsetCode = "1004"
+	ErrLoadingPathsetCode = "1011"
 )
 
 func ErrLoadingPathset(err error) error {
