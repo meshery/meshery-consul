@@ -110,13 +110,15 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 1
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.17
+
       - name: Run Error code utility
         run: |
-             go install github.com/layer5io/meshkit/cmd/errorutil
+             go get github.com/layer5io/meshkit/cmd/errorutil
              error=$(go run github.com/layer5io/meshkit/cmd/errorutil -d . analyze --skip-dirs meshery -i ./helpers -o ./helpers | grep "ERR0");
              if [ "$error" != "" ];then
                 echo "$error"
