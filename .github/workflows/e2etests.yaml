@@ -45,10 +45,11 @@ jobs:
 
   TestAdapterForServicemeshInstall:
     needs: SetPatternfileForServicemeshInstall
-    uses: meshery/meshery/.github/workflows/testadapters.yaml@master  
+    uses: meshery/meshery/blob/master/.github/workflows/test_adapters.yaml  
     with: 
-      expected_pods: consul-client, consul-server
-      expected_pods_namespaces: consul, consul
+      expected_resources: consul-client, consul-server
+      expected_resources_types: pod,pod
+      expected_resources_namespaces: consul, consul
       deployment_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-deployment.yaml
       service_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-service.yaml
       adapter_name: consul
