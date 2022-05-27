@@ -108,12 +108,8 @@ jobs:
           service-mesh: Consul
           service-mesh-version: $(jq '.metadata.service_mesh_version' data.json)
           tests:
-            consul-connect-injector-webhook-deployment: $(jq '.pods_status."consul-connect-injector-webhook-deployment"' data.json)
-            consul-controller: $(jq '.pods_status."consul-controller"' data.json)
+            consul-client: $(jq '.pods_status."consul-client"' data.json)
             consul-server:  $(jq '.pods_status."consul-server"' data.json)
-            consul-webhook-cert-manager:  $(jq '.pods_status."consul-webhook-cert-manager"' data.json)
-            consul:  $(jq '.pods_status."consul"' data.json)
-            prometheus-server:  $(jq '.pods_status."prometheus-server"' data.json)
           overall-status: $(jq '."overall-status"' data.json)
           ---" >  test.md
           mv test.md $filename.md
