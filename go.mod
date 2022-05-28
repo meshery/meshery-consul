@@ -9,6 +9,7 @@ replace (
 	go.opentelemetry.io/otel v1.3.0 => go.opentelemetry.io/otel v0.11.0
 	go.opentelemetry.io/otel/sdk v1.3.0 => go.opentelemetry.io/otel/sdk v0.11.0
 	gopkg.in/ini.v1 => github.com/go-ini/ini v1.62.0
+	github.com/layer5io/meshery-adapter-library => ../meshery-adapter-library
 //golang.org/x/sys => golang.org/x/sys v0.0.0-20200826173525-f9321e4c35a6
 )
 

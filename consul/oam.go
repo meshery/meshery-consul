@@ -3,6 +3,7 @@ package consul
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/layer5io/meshkit/models/oam/core/v1alpha1"
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
@@ -10,9 +11,9 @@ import (
 )
 
 // CompHandler is the type for functions which can handle OAM components
-type CompHandler func(*Consul, v1alpha1.Component, bool) (string, error)
+type CompHandler func(*Consul, v1alpha1.Component, bool, []string) (string, error)
 
-func (h *Consul) HandleComponents(comps []v1alpha1.Component, isDel bool) (string, error) {
+func (h *Consul) HandleComponents(comps []v1alpha1.Component, isDel bool, kubeconfigs []string) (string, error) {
 	var errs []error
 	var msgs []string
 
@@ -22,7 +23,7 @@ func (h *Consul) HandleComponents(comps []v1alpha1.Component, isDel bool) (strin
 	for _, comp := range comps {
 		fnc, ok := compFuncMap[comp.Spec.Type]
 		if !ok {
-			msg, err := handleConsulCoreComponents(h, comp, isDel, "", "")
+			msg, err := handleConsulCoreComponents(h, comp, isDel, "", "", kubeconfigs)
 			if err != nil {
 				errs = append(errs, err)
 				continue
@@ -32,7 +33,7 @@ func (h *Consul) HandleComponents(comps []v1alpha1.Component, isDel bool) (strin
 			continue
 		}
 
-		msg, err := fnc(h, comp, isDel)
+		msg, err := fnc(h, comp, isDel, kubeconfigs)
 		if err != nil {
 			errs = append(errs, err)
 			continue
@@ -46,7 +47,7 @@ func (h *Consul) HandleComponents(comps []v1alpha1.Component, isDel bool) (strin
 
 	return mergeMsgs(msgs), nil
 }
-func (h *Consul) HandleApplicationConfiguration(config v1alpha1.Configuration, isDel bool) (string, error) {
+func (h *Consul) HandleApplicationConfiguration(config v1alpha1.Configuration, isDel bool, kubeconfigs []string) (string, error) {
 	var errs []error
 	var msgs []string
 	for _, comp := range config.Spec.Components {
@@ -80,13 +81,13 @@ func mergeMsgs(strs []string) string {
 	return strings.Join(strs, "\n")
 }
 
-func handleComponentConsulMesh(c *Consul, comp v1alpha1.Component, isDelete bool) (string, error) {
+func handleComponentConsulMesh(c *Consul, comp v1alpha1.Component, isDelete bool, kubeconfigs []string) (string, error) {
 	// Get the consul version from the settings
 	// we are sure that the version of consul would be present
 	// because the configuration is already validated against the schema
 	version := comp.Spec.Settings["version"].(string)
 
-	msg, err := c.installConsul(isDelete, version, comp.Namespace)
+	msg, err := c.installConsul(isDelete, version, comp.Namespace, kubeconfigs)
 	if err != nil {
 		return fmt.Sprintf("%s: %s", comp.Name, msg), err
 	}
@@ -98,7 +99,8 @@ func handleConsulCoreComponents(
 	comp v1alpha1.Component,
 	isDel bool,
 	apiVersion,
-	kind string) (string, error) {
+	kind string,
+	kubeconfigs []string) (string, error) {
 	if apiVersion == "" {
 		apiVersion = getAPIVersionFromComponent(comp)
 		if apiVersion == "" {
@@ -135,12 +137,32 @@ func handleConsulCoreComponents(
 	if isDel {
 		msg = fmt.Sprintf("deleted %s config \"%s\" in namespace \"%s\"", kind, comp.Name, comp.Namespace)
 	}
-
-	return msg, c.MesheryKubeclient.ApplyManifest(yamlByt, mesherykube.ApplyOptions{
-		Namespace: comp.Namespace,
-		Update:    true,
-		Delete:    isDel,
-	})
+	var errs []error
+	var wg sync.WaitGroup
+	for _, k8sconfig := range kubeconfigs {
+		wg.Add(1)
+		go func(k8sconfig string) {
+			kClient, err := mesherykube.New([]byte(k8sconfig))
+			if err != nil {
+				errs = append(errs, err)
+				return
+			}
+			err = kClient.ApplyManifest(yamlByt, mesherykube.ApplyOptions{
+				Namespace: comp.Namespace,
+				Update:    true,
+				Delete:    isDel,
+			})
+			if err != nil {
+				errs = append(errs, err)
+				return
+			}
+		}(k8sconfig)
+	}
+	wg.Wait()
+	if len(errs) != 0 {
+		return msg, mergeErrors(errs)
+	}
+	return msg, nil
 }
 func getAPIVersionFromComponent(comp v1alpha1.Component) string {
 	return comp.Annotations["pattern.meshery.io.mesh.workload.k8sAPIVersion"]
