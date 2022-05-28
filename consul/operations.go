@@ -18,13 +18,17 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-consul/internal/config"
 	meshery_kube "github.com/layer5io/meshkit/utils/kubernetes"
+	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 )
 
-func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRequest) error {
+func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRequest, hchan *chan interface{}) error {
+	h.SetChannel(hchan)
+	kubeconfigs := request.K8sConfigs
 	operations := make(adapter.Operations)
 	err := h.Config.GetObject(adapter.OperationsKey, &operations)
 	if err != nil {
@@ -56,7 +60,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 
 	switch request.OperationName {
 	case config.ConsulOperation: // Apply Helm chart operations
-		if status, err := h.applyHelmChart(request.IsDeleteOperation, operation.AdditionalProperties[config.HelmChartVersionKey], request.Namespace); err != nil {
+		if status, err := h.applyHelmChart(request.IsDeleteOperation, operation.AdditionalProperties[config.HelmChartVersionKey], request.Namespace, kubeconfigs); err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
 			h.StreamErr(e, err)
@@ -68,7 +72,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		config.ImageHubOperation,
 		config.BookInfoOperation:
 
-		status, err := h.applyManifests(request, *operation, *h.MesheryKubeclient)
+		status, err := h.applyManifests(request, *operation, kubeconfigs)
 		if err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
@@ -83,41 +87,55 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		h.StreamErr(e, adapter.ErrOpInvalid)
 		return adapter.ErrOpInvalid
 	}
+	var errs []error
+	var wg sync.WaitGroup
+	for _, k8sconfig := range kubeconfigs {
+		wg.Add(1)
+		go func(k8sconfig string) {
+			defer wg.Done()
+			kClient, err := mesherykube.New([]byte(k8sconfig))
+			if err != nil {
+				errs = append(errs, err)
+				return
+			}
+			if !request.IsDeleteOperation && len(operation.Services) > 0 {
+				for _, service := range operation.Services {
+					svc := strings.TrimSpace(string(service))
+					if len(svc) > 0 {
+						h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
 
-	if !request.IsDeleteOperation && len(operation.Services) > 0 {
-		for _, service := range operation.Services {
-			svc := strings.TrimSpace(string(service))
-			if len(svc) > 0 {
-				h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
-
-				endpoint, err1 := meshery_kube.GetServiceEndpoint(ctx, h.KubeClient, &meshery_kube.ServiceOptions{
-					Name:         svc,
-					Namespace:    request.Namespace,
-					APIServerURL: h.MesheryKubeclient.RestConfig.Host,
-				})
-				if err1 != nil {
-					h.StreamErr(&adapter.Event{
-						Operationid: request.OperationID,
-						Summary:     fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc),
-						Details:     err1.Error(),
-					}, err1)
-				} else {
-					external := "N/A"
-					if endpoint.External != nil {
-						external = fmt.Sprintf("%s:%v", endpoint.External.Address, endpoint.External.Port)
+						endpoint, err1 := meshery_kube.GetServiceEndpoint(ctx, kClient.KubeClient, &meshery_kube.ServiceOptions{
+							Name:         svc,
+							Namespace:    request.Namespace,
+							APIServerURL: kClient.RestConfig.Host,
+						})
+						if err1 != nil {
+							h.StreamErr(&adapter.Event{
+								Operationid: request.OperationID,
+								Summary:     fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc),
+								Details:     err1.Error(),
+							}, err1)
+						} else {
+							external := "N/A"
+							if endpoint.External != nil {
+								external = fmt.Sprintf("%s:%v", endpoint.External.Address, endpoint.External.Port)
+							}
+							internal := "N/A"
+							if endpoint.Internal != nil {
+								internal = fmt.Sprintf("%s:%v", endpoint.Internal.Address, endpoint.Internal.Port)
+							}
+							msg := fmt.Sprintf("%s Service endpoints for service %s: internal=%s, external=%s", e.Summary, svc, internal, external)
+							h.Log.Info(msg)
+							e.Summary = msg
+							e.Details = msg
+						}
 					}
-					internal := "N/A"
-					if endpoint.Internal != nil {
-						internal = fmt.Sprintf("%s:%v", endpoint.Internal.Address, endpoint.Internal.Port)
-					}
-					msg := fmt.Sprintf("%s Service endpoints for service %s: internal=%s, external=%s", e.Summary, svc, internal, external)
-					h.Log.Info(msg)
-					e.Summary = msg
-					e.Details = msg
 				}
 			}
-		}
+		}(k8sconfig)
 	}
+	wg.Wait()
+
 	h.StreamInfo(e)
 
 	return nil

@@ -30,12 +30,14 @@ type Consul struct {
 
 func New(config config.Handler, log logger.Handler, kubeConfig config.Handler) adapter.Handler {
 	return &Consul{
-		adapter.Adapter{Config: config, Log: log, KubeconfigHandler: kubeConfig},
+		adapter.Adapter{Config: config, Log: log},
 	}
 }
 
 // ProcessOAM will handles the grpc invocation for handling OAM objects
-func (h *Consul) ProcessOAM(ctx context.Context, oamReq adapter.OAMRequest) (string, error) {
+func (h *Consul) ProcessOAM(ctx context.Context, oamReq adapter.OAMRequest, hchan *chan interface{}) (string, error) {
+	h.SetChannel(hchan)
+	kubeconfigs := oamReq.K8sConfigs
 	var comps []v1alpha1.Component
 	for _, acomp := range oamReq.OamComps {
 		comp, err := oam.ParseApplicationComponent(acomp)
@@ -54,13 +56,13 @@ func (h *Consul) ProcessOAM(ctx context.Context, oamReq adapter.OAMRequest) (str
 	// If operation is delete then first HandleConfiguration and then handle the deployment
 	if oamReq.DeleteOp {
 		// Process configuration
-		msg2, err := h.HandleApplicationConfiguration(config, oamReq.DeleteOp)
+		msg2, err := h.HandleApplicationConfiguration(config, oamReq.DeleteOp, kubeconfigs)
 		if err != nil {
 			return msg2, ErrProcessOAM(err)
 		}
 
 		// Process components
-		msg1, err := h.HandleComponents(comps, oamReq.DeleteOp)
+		msg1, err := h.HandleComponents(comps, oamReq.DeleteOp, kubeconfigs)
 		if err != nil {
 			return msg1 + "\n" + msg2, ErrProcessOAM(err)
 		}
@@ -68,13 +70,13 @@ func (h *Consul) ProcessOAM(ctx context.Context, oamReq adapter.OAMRequest) (str
 		return msg1 + "\n" + msg2, nil
 	}
 	// Process components
-	msg1, err := h.HandleComponents(comps, oamReq.DeleteOp)
+	msg1, err := h.HandleComponents(comps, oamReq.DeleteOp, kubeconfigs)
 	if err != nil {
 		return msg1, ErrProcessOAM(err)
 	}
 
 	// Process configuration
-	msg2, err := h.HandleApplicationConfiguration(config, oamReq.DeleteOp)
+	msg2, err := h.HandleApplicationConfiguration(config, oamReq.DeleteOp, kubeconfigs)
 	if err != nil {
 		return msg1 + "\n" + msg2, ErrProcessOAM(err)
 	}
