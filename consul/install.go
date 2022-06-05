@@ -70,13 +70,16 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 	h.Log.Info(fmt.Sprintf("%s %s", status, operation.Description))
 	var errs []error
 	var wg sync.WaitGroup
+	var errMx sync.Mutex
 	for _, k8sconfig := range kubeconfigs {
 		wg.Add(1)
 		go func(k8sconfig string) {
 			defer wg.Done()
 			kClient, err := mesherykube.New([]byte(k8sconfig))
 			if err != nil {
+				errMx.Lock()
 				errs = append(errs, err)
+				errMx.Unlock()
 				return
 			}
 			if operation.Type == int32(meshes.OpCategory_CUSTOM) {
@@ -86,7 +89,9 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 					Delete:    request.IsDeleteOperation,
 				})
 				if err != nil {
+					errMx.Lock()
 					errs = append(errs, err)
+					errMx.Unlock()
 					return
 				}
 			} else {
@@ -94,13 +99,17 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 					p := path.Join("consul", "config_templates", string(template))
 					tpl, err := ioutil.ReadFile(p)
 					if err != nil {
+						errMx.Lock()
 						errs = append(errs, err)
-						return
+						errMx.Unlock()
+						continue
 					}
 					merged, err := utils.MergeToTemplate(tpl, map[string]string{"namespace": request.Namespace})
 					if err != nil {
+						errMx.Lock()
 						errs = append(errs, err)
-						return
+						errMx.Unlock()
+						continue
 					}
 					err = kClient.ApplyManifest(merged, mesherykube.ApplyOptions{
 						Namespace: request.Namespace,
@@ -108,8 +117,10 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 						Delete:    request.IsDeleteOperation,
 					})
 					if err != nil {
+						errMx.Lock()
 						errs = append(errs, err)
-						return
+						errMx.Unlock()
+						continue
 					}
 				}
 			}
@@ -139,6 +150,7 @@ func (h *Consul) applyHelmChart(del bool, version string, ns string, kubeconfigs
 		act = mesherykube.INSTALL
 	}
 	var errs []error
+	var errMx sync.Mutex
 	var wg sync.WaitGroup
 	for _, kubeconfig := range kubeconfigs {
 		wg.Add(1)
@@ -146,7 +158,9 @@ func (h *Consul) applyHelmChart(del bool, version string, ns string, kubeconfigs
 			defer wg.Done()
 			kClient, err := mesherykube.New([]byte(kubeconfig))
 			if err != nil {
+				errMx.Lock()
 				errs = append(errs, err)
+				errMx.Unlock()
 				return
 			}
 			err = kClient.ApplyHelmChart(mesherykube.ApplyHelmChartConfig{
@@ -165,7 +179,9 @@ func (h *Consul) applyHelmChart(del bool, version string, ns string, kubeconfigs
 				},
 			})
 			if err != nil {
+				errMx.Lock()
 				errs = append(errs, err)
+				errMx.Unlock()
 				return
 			}
 		}(kubeconfig)
