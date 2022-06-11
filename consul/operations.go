@@ -22,7 +22,6 @@ import (
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-consul/internal/config"
-	meshery_kube "github.com/layer5io/meshkit/utils/kubernetes"
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 )
 
@@ -108,7 +107,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 					if len(svc) > 0 {
 						h.Log.Info(fmt.Sprintf("Retreiving endpoint for service %s.", svc))
 
-						endpoint, err1 := meshery_kube.GetServiceEndpoint(ctx, kClient.KubeClient, &meshery_kube.ServiceOptions{
+						endpoint, err1 := mesherykube.GetServiceEndpoint(ctx, kClient.KubeClient, &mesherykube.ServiceOptions{
 							Name:         svc,
 							Namespace:    request.Namespace,
 							APIServerURL: kClient.RestConfig.Host,
