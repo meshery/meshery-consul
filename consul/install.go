@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"path"
+	"sync"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-adapter-library/meshes"
@@ -32,7 +33,7 @@ const (
 	chart = "consul"
 )
 
-func (h *Consul) installConsul(del bool, version, namespace string) (string, error) {
+func (h *Consul) installConsul(del bool, version, namespace string, kubeconfigs []string) (string, error) {
 	h.Log.Debug(fmt.Sprintf("Requested install of version: %s", version))
 	h.Log.Debug(fmt.Sprintf("Requested action is delete: %v", del))
 	h.Log.Debug(fmt.Sprintf("Requested action is in namespace: %s", namespace))
@@ -47,7 +48,7 @@ func (h *Consul) installConsul(del bool, version, namespace string) (string, err
 		return st, ErrMeshConfig(err)
 	}
 
-	_, err = h.applyHelmChart(del, version, namespace)
+	_, err = h.applyHelmChart(del, version, namespace, kubeconfigs)
 	if err != nil {
 		return st, ErrApplyHelmChart(err)
 	}
@@ -59,7 +60,7 @@ func (h *Consul) installConsul(del bool, version, namespace string) (string, err
 
 	return st, nil
 }
-func (h *Consul) applyManifests(request adapter.OperationRequest, operation adapter.Operation, kubeClient mesherykube.Client) (string, error) {
+func (h *Consul) applyManifests(request adapter.OperationRequest, operation adapter.Operation, kubeconfigs []string) (string, error) {
 	status := opstatus.Installing
 
 	if request.IsDeleteOperation {
@@ -67,36 +68,67 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 	}
 
 	h.Log.Info(fmt.Sprintf("%s %s", status, operation.Description))
-
-	if operation.Type == int32(meshes.OpCategory_CUSTOM) {
-		err := kubeClient.ApplyManifest([]byte(request.CustomBody), mesherykube.ApplyOptions{
-			Namespace: request.Namespace,
-			Update:    true,
-			Delete:    request.IsDeleteOperation,
-		})
-		if err != nil {
-			return status, ErrApplyOperation(err)
-		}
-	} else {
-		for _, template := range operation.Templates {
-			p := path.Join("consul", "config_templates", string(template))
-			tpl, err := ioutil.ReadFile(p)
+	var errs []error
+	var wg sync.WaitGroup
+	var errMx sync.Mutex
+	for _, k8sconfig := range kubeconfigs {
+		wg.Add(1)
+		go func(k8sconfig string) {
+			defer wg.Done()
+			kClient, err := mesherykube.New([]byte(k8sconfig))
 			if err != nil {
-				return status, ErrApplyOperation(err)
+				errMx.Lock()
+				errs = append(errs, err)
+				errMx.Unlock()
+				return
 			}
-			merged, err := utils.MergeToTemplate(tpl, map[string]string{"namespace": request.Namespace})
-			if err != nil {
-				return status, ErrApplyOperation(err)
+			if operation.Type == int32(meshes.OpCategory_CUSTOM) {
+				err := kClient.ApplyManifest([]byte(request.CustomBody), mesherykube.ApplyOptions{
+					Namespace: request.Namespace,
+					Update:    true,
+					Delete:    request.IsDeleteOperation,
+				})
+				if err != nil {
+					errMx.Lock()
+					errs = append(errs, err)
+					errMx.Unlock()
+					return
+				}
+			} else {
+				for _, template := range operation.Templates {
+					p := path.Join("consul", "config_templates", string(template))
+					tpl, err := ioutil.ReadFile(p)
+					if err != nil {
+						errMx.Lock()
+						errs = append(errs, err)
+						errMx.Unlock()
+						continue
+					}
+					merged, err := utils.MergeToTemplate(tpl, map[string]string{"namespace": request.Namespace})
+					if err != nil {
+						errMx.Lock()
+						errs = append(errs, err)
+						errMx.Unlock()
+						continue
+					}
+					err = kClient.ApplyManifest(merged, mesherykube.ApplyOptions{
+						Namespace: request.Namespace,
+						Update:    true,
+						Delete:    request.IsDeleteOperation,
+					})
+					if err != nil {
+						errMx.Lock()
+						errs = append(errs, err)
+						errMx.Unlock()
+						continue
+					}
+				}
 			}
-			err = kubeClient.ApplyManifest(merged, mesherykube.ApplyOptions{
-				Namespace: request.Namespace,
-				Update:    true,
-				Delete:    request.IsDeleteOperation,
-			})
-			if err != nil {
-				return status, ErrApplyOperation(err)
-			}
-		}
+		}(k8sconfig)
+	}
+	wg.Wait()
+	if len(errs) != 0 {
+		return status, ErrApplyOperation(mergeErrors(errs))
 	}
 	return opstatus.Deployed, nil
 }
@@ -108,7 +140,7 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 // The chart is the only required value, defaults are handled by ApplyHelmChart from meshkit.
 // The values-file is expected in the consul/config_templates folder. It corresponds to a file specified
 // by the -f (--values) flag of the Helm CLI.
-func (h *Consul) applyHelmChart(del bool, version string, ns string) (string, error) {
+func (h *Consul) applyHelmChart(del bool, version string, ns string, kubeconfigs []string) (string, error) {
 	status := opstatus.Installing
 	var act mesherykube.HelmChartAction
 	if del {
@@ -117,24 +149,47 @@ func (h *Consul) applyHelmChart(del bool, version string, ns string) (string, er
 	} else {
 		act = mesherykube.INSTALL
 	}
+	var errs []error
+	var errMx sync.Mutex
+	var wg sync.WaitGroup
+	for _, kubeconfig := range kubeconfigs {
+		wg.Add(1)
+		go func(kubeconfig string) {
+			defer wg.Done()
+			kClient, err := mesherykube.New([]byte(kubeconfig))
+			if err != nil {
+				errMx.Lock()
+				errs = append(errs, err)
+				errMx.Unlock()
+				return
+			}
+			err = kClient.ApplyHelmChart(mesherykube.ApplyHelmChartConfig{
+				Namespace:       ns,
+				CreateNamespace: true,
+				Action:          act,
+				OverrideValues: map[string]interface{}{
+					"server": map[string]interface{}{
+						"affinity": nil, //By default Consul does not allow more than one server pods on a single node
+					},
+				},
+				ChartLocation: mesherykube.HelmChartLocation{
+					Repository: repo,
+					Chart:      chart,
+					Version:    version,
+				},
+			})
+			if err != nil {
+				errMx.Lock()
+				errs = append(errs, err)
+				errMx.Unlock()
+				return
+			}
+		}(kubeconfig)
+	}
+	wg.Wait()
 
-	err := h.MesheryKubeclient.ApplyHelmChart(mesherykube.ApplyHelmChartConfig{
-		Namespace:       ns,
-		CreateNamespace: true,
-		Action:          act,
-		OverrideValues: map[string]interface{}{
-			"server": map[string]interface{}{
-				"affinity": nil, //By default Consul does not allow more than one server pods on a single node
-			},
-		},
-		ChartLocation: mesherykube.HelmChartLocation{
-			Repository: repo,
-			Chart:      chart,
-			Version:    version,
-		},
-	})
-	if err != nil {
-		return status, ErrApplyOperation(err)
+	if len(errs) != 0 {
+		return status, ErrApplyOperation(mergeErrors(errs))
 	}
 
 	return opstatus.Deployed, nil
