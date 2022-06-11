@@ -27,10 +27,14 @@ import (
 )
 
 func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRequest, hchan *chan interface{}) error {
+	err := h.CreateKubeconfigs(request.K8sConfigs)
+	if err != nil {
+		return err
+	}
 	h.SetChannel(hchan)
 	kubeconfigs := request.K8sConfigs
 	operations := make(adapter.Operations)
-	err := h.Config.GetObject(adapter.OperationsKey, &operations)
+	err = h.Config.GetObject(adapter.OperationsKey, &operations)
 	if err != nil {
 		return err
 	}

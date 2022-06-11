@@ -21,7 +21,9 @@ import (
 	"github.com/layer5io/meshery-adapter-library/config"
 	"github.com/layer5io/meshery-consul/consul/oam"
 	"github.com/layer5io/meshkit/logger"
+	"github.com/layer5io/meshkit/models"
 	"github.com/layer5io/meshkit/models/oam/core/v1alpha1"
+	"gopkg.in/yaml.v2"
 )
 
 type Consul struct {
@@ -30,12 +32,61 @@ type Consul struct {
 
 func New(config config.Handler, log logger.Handler, kubeConfig config.Handler) adapter.Handler {
 	return &Consul{
-		adapter.Adapter{Config: config, Log: log},
+		adapter.Adapter{Config: config, Log: log, KubeconfigHandler: kubeConfig},
 	}
+}
+
+//CreateKubeconfigs creates and writes passed kubeconfig onto the filesystem
+func (consul *Consul) CreateKubeconfigs(kubeconfigs []string) error {
+	var errs = make([]error, 0)
+	for _, kubeconfig := range kubeconfigs {
+		kconfig := models.Kubeconfig{}
+		err := yaml.Unmarshal([]byte(kubeconfig), &kconfig)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		// To have control over what exactly to take in on kubeconfig
+		consul.KubeconfigHandler.SetKey("kind", kconfig.Kind)
+		consul.KubeconfigHandler.SetKey("apiVersion", kconfig.APIVersion)
+		consul.KubeconfigHandler.SetKey("current-context", kconfig.CurrentContext)
+		err = consul.KubeconfigHandler.SetObject("preferences", kconfig.Preferences)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		err = consul.KubeconfigHandler.SetObject("clusters", kconfig.Clusters)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		err = consul.KubeconfigHandler.SetObject("users", kconfig.Users)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+
+		err = consul.KubeconfigHandler.SetObject("contexts", kconfig.Contexts)
+		if err != nil {
+			errs = append(errs, err)
+			continue
+		}
+	}
+	if len(errs) == 0 {
+		return nil
+	}
+	return mergeErrors(errs)
 }
 
 // ProcessOAM will handles the grpc invocation for handling OAM objects
 func (h *Consul) ProcessOAM(ctx context.Context, oamReq adapter.OAMRequest, hchan *chan interface{}) (string, error) {
+	err := h.CreateKubeconfigs(oamReq.K8sConfigs)
+	if err != nil {
+		return "", err
+	}
 	h.SetChannel(hchan)
 	kubeconfigs := oamReq.K8sConfigs
 	var comps []v1alpha1.Component
