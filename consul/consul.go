@@ -37,7 +37,7 @@ func New(config config.Handler, log logger.Handler, kubeConfig config.Handler) a
 }
 
 //CreateKubeconfigs creates and writes passed kubeconfig onto the filesystem
-func (consul *Consul) CreateKubeconfigs(kubeconfigs []string) error {
+func (h *Consul) CreateKubeconfigs(kubeconfigs []string) error {
 	var errs = make([]error, 0)
 	for _, kubeconfig := range kubeconfigs {
 		kconfig := models.Kubeconfig{}
@@ -48,28 +48,28 @@ func (consul *Consul) CreateKubeconfigs(kubeconfigs []string) error {
 		}
 
 		// To have control over what exactly to take in on kubeconfig
-		consul.KubeconfigHandler.SetKey("kind", kconfig.Kind)
-		consul.KubeconfigHandler.SetKey("apiVersion", kconfig.APIVersion)
-		consul.KubeconfigHandler.SetKey("current-context", kconfig.CurrentContext)
-		err = consul.KubeconfigHandler.SetObject("preferences", kconfig.Preferences)
+		h.KubeconfigHandler.SetKey("kind", kconfig.Kind)
+		h.KubeconfigHandler.SetKey("apiVersion", kconfig.APIVersion)
+		h.KubeconfigHandler.SetKey("current-context", kconfig.CurrentContext)
+		err = h.KubeconfigHandler.SetObject("preferences", kconfig.Preferences)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
-		err = consul.KubeconfigHandler.SetObject("clusters", kconfig.Clusters)
+		err = h.KubeconfigHandler.SetObject("clusters", kconfig.Clusters)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
-		err = consul.KubeconfigHandler.SetObject("users", kconfig.Users)
+		err = h.KubeconfigHandler.SetObject("users", kconfig.Users)
 		if err != nil {
 			errs = append(errs, err)
 			continue
 		}
 
-		err = consul.KubeconfigHandler.SetObject("contexts", kconfig.Contexts)
+		err = h.KubeconfigHandler.SetObject("contexts", kconfig.Contexts)
 		if err != nil {
 			errs = append(errs, err)
 			continue
