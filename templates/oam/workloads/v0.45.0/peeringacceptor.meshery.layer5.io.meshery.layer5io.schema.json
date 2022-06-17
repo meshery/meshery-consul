@@ -1,0 +1,34 @@
+{
+ "description": "PeeringAcceptorSpec defines the desired state of PeeringAcceptor.",
+ "properties": {
+  "peer": {
+   "description": "Peer describes the information needed to create a peering.",
+   "properties": {
+    "secret": {
+     "description": "Secret describes how to store the generated peering token.",
+     "properties": {
+      "backend": {
+       "description": "Backend is where the generated secret is stored. Currently supports the value: \"kubernetes\".",
+       "type": "string"
+      },
+      "key": {
+       "description": "Key is the key of the secret generated.",
+       "type": "string"
+      },
+      "name": {
+       "description": "Name is the name of the secret generated.",
+       "type": "string"
+      }
+     },
+     "type": "object"
+    }
+   },
+   "type": "object"
+  }
+ },
+ "required": [
+  "peer"
+ ],
+ "title": "Peering Acceptor",
+ "type": "object"
+}
