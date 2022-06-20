@@ -1,4 +1,4 @@
-name: Meshery Adapter for consul Tests
+name: Meshery Adapter for Consul Tests
 
 on:
   push:
@@ -6,6 +6,9 @@ on:
       - "*"
     tags:
       - "v*"
+    paths-ignore:
+      - 'docs/**'
+      - '.github/**'
   pull_request:
     branches:
       - "*"
@@ -123,4 +126,3 @@ jobs:
           commit_author: ${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>
           commit_options: '--signoff'
           commit_message: '[Docs] Test status of adapter'
-          
