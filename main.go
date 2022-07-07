@@ -122,7 +122,7 @@ func registerWorkloads(port string, log logger.Handler) {
 	gm := build.DefaultGenerationMethod
 
 	// Prechecking to skip comp gen
-	if os.Getenv("FORCE_DYNAMIC_REG") != "true" && oam.AvailableVersions[version] {
+	if os.Getenv("FORCE_DYNAMIC_REG") != "true" && oam.AvailableVersions[build.LatestAppVersion] {
 		log.Info("Components available statically for version ", version, ". Skipping dynamic component registeration")
 		return
 	}

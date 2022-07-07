@@ -59,16 +59,23 @@ func init() {
 	if len(allVersions) == 0 {
 		return
 	}
-	for _, v := range allVersions {
-		av, err := kubernetes.HelmChartVersionToAppVersion("https://helm.releases.hashicorp.com", "consul", strings.TrimPrefix(v, "v"))
-		if err != nil {
-			log.Println("could not find app version for " + v + err.Error())
-			continue
+	fmt.Println("here0")
+	for i, v := range allVersions {
+		if i == len(allVersions)-1 { //only get AppVersion of latest chart version
+			//Executing the below function for all versions is redundant and takes time on startup, we only want to know the latest app version of latest version.
+			av, err := kubernetes.HelmChartVersionToAppVersion("https://helm.releases.hashicorp.com", "consul", strings.TrimPrefix(v, "v"))
+			if err != nil {
+				log.Println("could not find app version for " + v + err.Error())
+			}
+			AllVersions = append(AllVersions, Versions{
+				ChartVersion: v,
+				AppVersion:   av,
+			})
+		} else {
+			AllVersions = append(AllVersions, Versions{
+				ChartVersion: v,
+			})
 		}
-		AllVersions = append(AllVersions, Versions{
-			ChartVersion: v,
-			AppVersion:   av,
-		})
 	}
 	CRDnames, _ = config.GetFileNames("hashicorp", "consul-k8s", "control-plane/config/crd/bases/")
 	LatestAppVersion = AllVersions[len(AllVersions)-1].AppVersion
