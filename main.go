@@ -135,17 +135,18 @@ func registerWorkloads(port string, log logger.Handler) {
 		build.CRDnames = []string{"user passed configuration"}
 	}
 	// Register workloads
+
 	for _, manifest := range build.CRDnames {
 		log.Info("Registering for ", manifest)
 		if err := adapter.CreateComponents(adapter.StaticCompConfig{
-			URL:     build.GetDefaultURL(manifest),
+			URL:     build.GetDefaultURL(manifest, build.LatestVersion),
 			Method:  gm,
 			Path:    build.WorkloadPath,
-			DirName: version,
-			Config:  build.NewConfig(version),
+			DirName: build.LatestAppVersion,
+			Config:  build.NewConfig(build.LatestAppVersion),
 		}); err != nil {
 			log.Error(err)
-			return
+			continue
 		}
 		log.Info(manifest, " registered")
 	}
