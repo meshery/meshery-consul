@@ -1,3 +1,10 @@
+GOPATH = $(shell go env GOPATH)
+BUILDER=buildx-multi-arch
+
+GIT_VERSION=$(shell git describe --tags `git rev-list --tags --max-count=1`)
+GIT_STRIPPED_VERSION=$(shell git describe --tags `git rev-list --tags --max-count=1` | cut -c 2-)
+v ?= 1.17.8 # Default go version to be used
+
 .PHONY: check
 check: error
 	golangci-lint run
@@ -29,7 +36,7 @@ docker-run:
 
 .PHONY: run
 run:
-	go mod tidy;
+	go$(v) mod tidy -compat=1.17; \
 	DEBUG=true go run main.go
 
 run-force-dynamic-reg:
