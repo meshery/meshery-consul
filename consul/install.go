@@ -16,8 +16,6 @@ package consul
 
 import (
 	"fmt"
-	"io/ioutil"
-	"path"
 	"sync"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
@@ -96,14 +94,7 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 				}
 			} else {
 				for _, template := range operation.Templates {
-					p := path.Join("consul", "config_templates", string(template))
-					tpl, err := ioutil.ReadFile(p)
-					if err != nil {
-						errMx.Lock()
-						errs = append(errs, err)
-						errMx.Unlock()
-						continue
-					}
+					tpl := []byte(template)
 					merged, err := utils.MergeToTemplate(tpl, map[string]string{"namespace": request.Namespace})
 					if err != nil {
 						errMx.Lock()
