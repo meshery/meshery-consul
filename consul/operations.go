@@ -74,7 +74,6 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		config.HTTPBinOperation,
 		config.ImageHubOperation,
 		config.BookInfoOperation:
-
 		status, err := h.applyManifests(request, *operation, kubeconfigs)
 		if err != nil {
 			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)

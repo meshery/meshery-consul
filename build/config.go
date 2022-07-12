@@ -59,7 +59,6 @@ func init() {
 	if len(allVersions) == 0 {
 		return
 	}
-	fmt.Println("here0")
 	for i, v := range allVersions {
 		if i == len(allVersions)-1 { //only get AppVersion of latest chart version
 			//Executing the below function for all versions is redundant and takes time on startup, we only want to know the latest app version of latest version.
