@@ -94,7 +94,7 @@ func (h *Consul) applyManifests(request adapter.OperationRequest, operation adap
 				}
 			} else {
 				for _, template := range operation.Templates {
-					tpl := []byte(template)
+					tpl := []byte(template.String())
 					merged, err := utils.MergeToTemplate(tpl, map[string]string{"namespace": request.Namespace})
 					if err != nil {
 						errMx.Lock()
