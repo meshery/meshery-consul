@@ -100,9 +100,9 @@ func registerCapabilities(port string, log logger.Handler) {
 	}
 
 	// Register traits
-	if err := oam.RegisterTraits(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
-		log.Error(err)
-	}
+	// if err := oam.RegisterTraits(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
+	// 	log.Error(err)
+	// }
 }
 
 func registerDynamicCapabilities(port string, log logger.Handler) {
