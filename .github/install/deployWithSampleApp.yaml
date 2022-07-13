@@ -1,0 +1,15 @@
+name: consul
+services:
+  consulinstallation:
+    type: #$(#use https://raw.githubusercontent.com/service-mesh-patterns/service-mesh-patterns/master/samples/istioinstall.yaml)
+    settings: 
+        controlplaneNS: consul
+        namespace: default
+        istioVersion: 1.12.2
+        profile: default
+  bookinfo:
+    type: #$(#use https://raw.githubusercontent.com/service-mesh-patterns/service-mesh-patterns/master/samples/bookInfoNoK8sPattern.yaml)
+    settings: 
+      namespace: default
+    dependsOn:
+      - consulinstallation
