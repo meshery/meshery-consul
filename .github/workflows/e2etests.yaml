@@ -155,4 +155,23 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: patternfile
-          path: ./.github/install/deployWithSampleApp.yaml     
+          path: ./.github/install/deployWithSampleApp.yaml  
+
+  TestIstioForServicemeshAndSampleApp:
+    needs: SetPatternfileForServicemeshAndSampleApp
+    uses: meshery/meshery/.github/workflows/test_adapters.yaml@master
+    with:
+      expected_resources: frontend,public-api,product-api,postgres
+      expected_resources_types: pod,pod,pod,pod
+      expected_resources_namespaces: default,default,default,default
+      deployment_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-deployment.yaml
+      service_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-service.yaml
+      adapter_name: consul
+      patternfile_name: deployWithSampleApp.yaml
+      provider: Local
+      k8s_version: v1.20.1
+      sm_version: ${{ needs.SetPatternfileForServicemeshAndSampleApp.outputs.sm_version }}
+      adapter_version:  ${{ needs.SetPatternfileForServicemeshAndSampleApp.outputs.adapter_version }}
+      output_filename: data.json
+    secrets:
+      token: ${{ secrets.PROVIDER_TOKEN }}           
