@@ -126,6 +126,33 @@ jobs:
           commit_options: '--signoff'
           commit_message: '[Docs] Test status of adapter'
   
-  SetPatternFileForSampleApp:
+  SetPatternfileForServicemeshAndSampleApp:
     runs-on: ubuntu-latest
-           
+    outputs:
+      sm_version: ${{ steps.gettag.outputs.release }}
+      adapter_version:  ${{ env.version }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Get version of adapter
+        run: |
+            if [ ${{ github.event_name }} == "release" ];then
+                echo "version=${GITHUB_REF/refs\/tags\//}" >> $GITHUB_ENV
+            else 
+                echo "version=edge" >> $GITHUB_ENV
+            fi
+      - name: Get latest release tag
+        id: gettag
+        uses: pozetroninc/github-action-get-latest-release@master
+        with:
+          repository: hashicorp/consul-k8s
+          excludes: prerelease, draft, edge 
+      - name: Change service mesh version in patternfile
+        run: | 
+            yq e -i '.services.consulinstallation.settings.consulVersion="${{ steps.gettag.outputs.release }}"' ./.github/install/deploywithsampleapp.yaml 
+            cat ./.github/install/deploywithsampleapp.yaml
+      - name: Uploading file
+        uses: actions/upload-artifact@v2
+        with:
+          name: patternfile
+          path: ./.github/install/deployWithSampleApp.yaml     
