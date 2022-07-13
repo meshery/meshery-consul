@@ -157,7 +157,7 @@ jobs:
           name: patternfile
           path: ./.github/install/deployWithSampleApp.yaml  
 
-  TestIstioForServicemeshAndSampleApp:
+  TestConsulForServicemeshAndSampleApp:
     needs: SetPatternfileForServicemeshAndSampleApp
     uses: meshery/meshery/.github/workflows/test_adapters.yaml@master
     with:
