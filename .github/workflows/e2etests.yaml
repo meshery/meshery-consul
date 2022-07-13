@@ -149,7 +149,7 @@ jobs:
           excludes: prerelease, draft, edge 
       - name: Change service mesh version in patternfile
         run: | 
-            yq e -i '.services.consulinstallation.settings.consulVersion="${{ steps.gettag.outputs.release }}"' ./.github/install/deploywithsampleapp.yaml 
+            yq e -i '.services.consulinstallation.settings.consulVersion="${{ steps.gettag.outputs.release }}"' ./.github/install/deployWithSampleApp.yaml 
             cat ./.github/install/deploywithsampleapp.yaml
       - name: Uploading file
         uses: actions/upload-artifact@v2
