@@ -1,7 +1,6 @@
 name: user
 vars:
   controlplaneNS: consul
-  namespace: default
   consulVersion: 1.12.2
   profile: default
 services:

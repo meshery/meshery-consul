@@ -1,15 +1,13 @@
 name: consul
 services:
   consulinstallation:
-    type: #$(#use https://raw.githubusercontent.com/service-mesh-patterns/service-mesh-patterns/master/samples/istioinstall.yaml)
+    type: $(#use https://raw.githubusercontent.com/Zanda256/meshery-consul/add-e2e-tests/%23249/.github/install/installconsul.yaml)
     settings: 
         controlplaneNS: consul
         namespace: default
-        istioVersion: 1.12.2
+        consulVersion: 1.12.2
         profile: default
-  bookinfo:
-    type: #$(#use https://raw.githubusercontent.com/service-mesh-patterns/service-mesh-patterns/master/samples/bookInfoNoK8sPattern.yaml)
-    settings: 
-      namespace: default
+  hashicups:
+    type: $(#use https://raw.githubusercontent.com/Zanda256/meshery-consul/add-e2e-tests/%23249/.github/install/hashiCupsPattern.yaml)
     dependsOn:
       - consulinstallation
