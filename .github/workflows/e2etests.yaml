@@ -161,8 +161,8 @@ jobs:
     needs: SetPatternfileForServicemeshAndSampleApp
     uses: meshery/meshery/.github/workflows/test_adapters.yaml@master
     with:
-      expected_resources: frontend,public-api,product-api,postgres
-      expected_resources_types: pod,pod,pod,pod
+      expected_resources: frontend, public-api, product-api, postgres
+      expected_resources_types: pod, pod, pod, pod
       expected_resources_namespaces: default,default,default,default
       deployment_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-deployment.yaml
       service_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-service.yaml
@@ -177,7 +177,7 @@ jobs:
       token: ${{ secrets.PROVIDER_TOKEN }}   
 
   UpdateDocsForServicemeshAndSampleApp:
-    needs: [TestIstioForServicemeshAndSampleApp, UpdateDocsForServicemeshInstall]
+    needs: [TestConsulForServicemeshAndSampleApp, UpdateDocsForServicemeshInstall]
     if:  "always() && github.event_name != 'pull_request' "
     runs-on: ubuntu-latest
     steps:
