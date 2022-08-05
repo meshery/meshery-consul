@@ -85,8 +85,10 @@ func handleComponentConsulMesh(c *Consul, comp v1alpha1.Component, isDelete bool
 	// Get the consul version from the settings
 	// we are sure that the version of consul would be present
 	// because the configuration is already validated against the schema
-	version := comp.Spec.Settings["version"].(string)
-
+	version := comp.Spec.Version
+	if version == "" {
+		return "", fmt.Errorf("empty version passed for service mesh installation")
+	}
 	msg, err := c.installConsul(isDelete, version, comp.Namespace, kubeconfigs)
 	if err != nil {
 		return fmt.Sprintf("%s: %s", comp.Name, msg), err
