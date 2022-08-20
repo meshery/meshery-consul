@@ -43,6 +43,8 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		Operationid: request.OperationID,
 		Summary:     "Deploying",
 		Details:     "None",
+		Component:   config.ServerDefaults["type"],
+		ComponentName: config.ServerDefaults["name"],
 	}
 
 	if request.IsDeleteOperation {
@@ -52,10 +54,9 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 
 	operation, ok := operations[request.OperationName]
 	if !ok {
-		e.Summary = "Error unknown operation name"
+		summary := "Error unknown operation name"
 		err = adapter.ErrOpInvalid
-		e.Details = err.Error()
-		h.StreamErr(e, err)
+		h.streamErr(summary, e, err)
 		return err
 	}
 
@@ -64,9 +65,8 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	switch request.OperationName {
 	case config.ConsulOperation: // Apply Helm chart operations
 		if status, err := h.applyHelmChart(request.IsDeleteOperation, operation.AdditionalProperties[config.HelmChartVersionKey], request.Namespace, kubeconfigs); err != nil {
-			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
-			e.Details = err.Error()
-			h.StreamErr(e, err)
+			summary := fmt.Sprintf("Error while %s %s", status, opDesc)
+			h.streamErr(summary, e, err)
 			return err
 		}
 	case config.CustomOperation, // Apply Kubernetes manifests operations
@@ -76,9 +76,9 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		config.BookInfoOperation:
 		status, err := h.applyManifests(request, *operation, kubeconfigs)
 		if err != nil {
-			e.Summary = fmt.Sprintf("Error while %s %s", status, opDesc)
+			summary := fmt.Sprintf("Error while %s %s", status, opDesc)
 			e.Details = err.Error()
-			h.StreamErr(e, err)
+			h.streamErr(summary, e, err)
 			return err
 		}
 
@@ -86,7 +86,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 		e.Details = e.Summary
 
 	default:
-		h.StreamErr(e, adapter.ErrOpInvalid)
+		h.streamErr("Invalid Operation", e, adapter.ErrOpInvalid)
 		return adapter.ErrOpInvalid
 	}
 	var errs []error
@@ -112,11 +112,8 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 							APIServerURL: kClient.RestConfig.Host,
 						})
 						if err1 != nil {
-							h.StreamErr(&adapter.Event{
-								Operationid: request.OperationID,
-								Summary:     fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc),
-								Details:     err1.Error(),
-							}, err1)
+							summary :=  fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc)
+							h.streamErr(summary, e, err1)
 						} else {
 							external := "N/A"
 							if endpoint.External != nil {
@@ -141,4 +138,13 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	h.StreamInfo(e)
 
 	return nil
+}
+
+func(h *Consul) streamErr(summary string, e *adapter.Event, err error) {
+	e.Summary = summary
+	e.Details = err.Error()
+	e.ErrorCode = errors.GetCode(err)
+	e.ProbableCause = errors.GetCause(err)
+	e.SuggestedRemediation = errors.GetRemedy(err)
+	h.StreamErr(e, err)
 }
