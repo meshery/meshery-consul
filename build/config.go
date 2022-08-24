@@ -1,6 +1,8 @@
 package build
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -9,16 +11,23 @@ import (
 	"github.com/layer5io/meshery-consul/internal/config"
 
 	"github.com/layer5io/meshkit/utils"
+	"github.com/layer5io/meshkit/utils/kubernetes"
 	"github.com/layer5io/meshkit/utils/manifests"
 	smp "github.com/layer5io/service-mesh-performance/spec"
 )
 
+type Versions struct {
+	AppVersion   string
+	ChartVersion string
+}
+
 var DefaultGenerationMethod string
 var LatestVersion string
+var LatestAppVersion string
 var WorkloadPath string
 var CRDnames []string
 var OverrideURL string
-var AllVersions []string
+var AllVersions []Versions
 
 //NewConfig creates the configuration for creating components
 func NewConfig(version string) manifests.Config {
@@ -37,20 +46,38 @@ func NewConfig(version string) manifests.Config {
 		},
 	}
 }
-func GetDefaultURL(crd string) string {
+func GetDefaultURL(crd string, version string) string {
 	if OverrideURL != "" {
 		return OverrideURL
 	}
-	return strings.Join([]string{"https://raw.githubusercontent.com/hashicorp/consul-k8s/main/control-plane/config/crd/bases", crd}, "/")
+	return strings.Join([]string{fmt.Sprintf("https://raw.githubusercontent.com/hashicorp/consul-k8s/%s/control-plane/config/crd/bases", version), crd}, "/")
 }
 func init() {
 	wd, _ := os.Getwd()
 	WorkloadPath = filepath.Join(wd, "templates", "oam", "workloads")
-	AllVersions, _ = utils.GetLatestReleaseTagsSorted("hashicorp", "consul-k8s")
-	if len(AllVersions) == 0 {
+	allVersions, _ := utils.GetLatestReleaseTagsSorted("hashicorp", "consul-k8s")
+	if len(allVersions) == 0 {
 		return
 	}
+	for i, v := range allVersions {
+		if i == len(allVersions)-1 { //only get AppVersion of latest chart version
+			//Executing the below function for all versions is redundant and takes time on startup, we only want to know the latest app version of latest version.
+			av, err := kubernetes.HelmChartVersionToAppVersion("https://helm.releases.hashicorp.com", "consul", strings.TrimPrefix(v, "v"))
+			if err != nil {
+				log.Println("could not find app version for " + v + err.Error())
+			}
+			AllVersions = append(AllVersions, Versions{
+				ChartVersion: v,
+				AppVersion:   av,
+			})
+		} else {
+			AllVersions = append(AllVersions, Versions{
+				ChartVersion: v,
+			})
+		}
+	}
 	CRDnames, _ = config.GetFileNames("hashicorp", "consul-k8s", "control-plane/config/crd/bases/")
-	LatestVersion = AllVersions[len(AllVersions)-1]
+	LatestAppVersion = AllVersions[len(AllVersions)-1].AppVersion
+	LatestVersion = AllVersions[len(AllVersions)-1].ChartVersion
 	DefaultGenerationMethod = adapter.Manifests
 }

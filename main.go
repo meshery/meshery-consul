@@ -100,9 +100,9 @@ func registerCapabilities(port string, log logger.Handler) {
 	}
 
 	// Register traits
-	if err := oam.RegisterTraits(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
-		log.Error(err)
-	}
+	// if err := oam.RegisterTraits(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
+	// 	log.Error(err)
+	// }
 }
 
 func registerDynamicCapabilities(port string, log logger.Handler) {
@@ -122,7 +122,7 @@ func registerWorkloads(port string, log logger.Handler) {
 	gm := build.DefaultGenerationMethod
 
 	// Prechecking to skip comp gen
-	if os.Getenv("FORCE_DYNAMIC_REG") != "true" && oam.AvailableVersions[version] {
+	if os.Getenv("FORCE_DYNAMIC_REG") != "true" && oam.AvailableVersions[build.LatestAppVersion] {
 		log.Info("Components available statically for version ", version, ". Skipping dynamic component registeration")
 		return
 	}
@@ -135,17 +135,18 @@ func registerWorkloads(port string, log logger.Handler) {
 		build.CRDnames = []string{"user passed configuration"}
 	}
 	// Register workloads
+
 	for _, manifest := range build.CRDnames {
 		log.Info("Registering for ", manifest)
 		if err := adapter.CreateComponents(adapter.StaticCompConfig{
-			URL:     build.GetDefaultURL(manifest),
+			URL:     build.GetDefaultURL(manifest, build.LatestVersion),
 			Method:  gm,
 			Path:    build.WorkloadPath,
-			DirName: version,
-			Config:  build.NewConfig(version),
+			DirName: build.LatestAppVersion,
+			Config:  build.NewConfig(build.LatestAppVersion),
 		}); err != nil {
 			log.Error(err)
-			return
+			continue
 		}
 		log.Info(manifest, " registered")
 	}
