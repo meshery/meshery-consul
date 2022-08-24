@@ -37,7 +37,7 @@ jobs:
           excludes: prerelease, draft, edge  
       - name: Change service mesh version in patternfile
         run: | 
-           yq e -i '.services.consul.settings.version="${{ steps.gettag.outputs.release }}"' ./.github/install/deploy.yaml 
+           yq e -i '.services.consul.version="${{ steps.gettag.outputs.release }}"' ./.github/install/deploy.yaml 
            cat ./.github/install/deploy.yaml  
       - name: Uploading file
         uses: actions/upload-artifact@v2
@@ -47,7 +47,7 @@ jobs:
 
   TestAdapterForServicemeshInstall:
     needs: SetPatternfileForServicemeshInstall
-    uses: github.com/Zanda256/meshery/.github/workflows/test_adapters.yaml@master  
+    uses: Zanda256/meshery/.github/workflows/test_adapters.yaml@master  
     with: 
       expected_resources: consul-client, consul-server
       expected_resources_types: pod,pod

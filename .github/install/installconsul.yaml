@@ -7,7 +7,5 @@ services:
   consulservicemesh:
     type: ConsulMesh
     namespace:  $(#ref.vars.controlplaneNS)
-    settings:
-      version: $(#ref.vars.consulVersion)
-      profile: $(#ref.vars.profile)
+    version: $(#ref.vars.consulVersion)
     

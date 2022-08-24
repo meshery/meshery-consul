@@ -3,6 +3,5 @@ services:
   consul:
     type: ConsulMesh
     namespace: consul
-    settings:
-      version:  #will be inserted dynamically
-            
+    version:  #will be inserted dynamically
+                 
