@@ -21,7 +21,9 @@ import (
 	"sync"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
+	"github.com/layer5io/meshery-adapter-library/meshes"
 	"github.com/layer5io/meshery-consul/internal/config"
+	"github.com/layer5io/meshkit/errors"
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 )
 
@@ -39,8 +41,8 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	}
 
 	//status := opstatus.Deploying
-	e := &adapter.Event{
-		Operationid: request.OperationID,
+	e := &meshes.EventsResponse{
+		OperationId: request.OperationID,
 		Summary:     "Deploying",
 		Details:     "None",
 		Component:   config.ServerDefaults["type"],
@@ -140,7 +142,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	return nil
 }
 
-func(h *Consul) streamErr(summary string, e *adapter.Event, err error) {
+func(h *Consul) streamErr(summary string, e *meshes.EventsResponse, err error) {
 	e.Summary = summary
 	e.Details = err.Error()
 	e.ErrorCode = errors.GetCode(err)
