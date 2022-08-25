@@ -11,3 +11,4 @@ services:
     type: $(#use https://raw.githubusercontent.com/Zanda256/meshery-consul/add-e2e-tests/%23249/.github/install/hashiCupsPattern.yaml)
     dependsOn:
       - consulinstallation
+
