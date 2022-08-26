@@ -47,7 +47,7 @@ jobs:
 
   TestAdapterForServicemeshInstall:
     needs: SetPatternfileForServicemeshInstall
-    uses: Zanda256/meshery/.github/workflows/test_adapters.yaml@master  
+    uses: Zanda256/meshery/.github/workflows/test_adapters.yaml@Add_adapter_tests_resiliency_logic/#5900 
     with: 
       expected_resources: consul-client, consul-server
       expected_resources_types: pod,pod
