@@ -26,6 +26,7 @@ import (
 	"github.com/layer5io/meshery-consul/consul/oam"
 	"github.com/layer5io/meshery-consul/internal/config"
 	configprovider "github.com/layer5io/meshkit/config/provider"
+	"github.com/layer5io/meshkit/utils/events"
 
 	"github.com/layer5io/meshery-adapter-library/api/grpc"
 	"github.com/layer5io/meshery-consul/build"
@@ -73,9 +74,9 @@ func main() {
 		os.Exit(1)
 	}
 	log.Info(fmt.Sprintf("KUBECONFIG: %s", kubeconfig))
-
-	service.Handler = consul.New(cfg, log, kubeCfg)
-	service.Channel = make(chan interface{}, 100)
+	e := events.NewEventStreamer()
+	service.Handler = consul.New(cfg, log, kubeCfg, e)
+	service.EventStreamer = e
 	service.StartedAt = time.Now()
 	service.Version = version
 	service.GitSHA = gitsha

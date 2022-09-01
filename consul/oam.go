@@ -5,6 +5,9 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/google/uuid"
+	"github.com/layer5io/meshery-adapter-library/meshes"
+	"github.com/layer5io/meshery-consul/internal/config"
 	"github.com/layer5io/meshkit/models/oam/core/v1alpha1"
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 	"gopkg.in/yaml.v2"
@@ -16,29 +19,47 @@ type CompHandler func(*Consul, v1alpha1.Component, bool, []string) (string, erro
 func (h *Consul) HandleComponents(comps []v1alpha1.Component, isDel bool, kubeconfigs []string) (string, error) {
 	var errs []error
 	var msgs []string
-
+	stat1 := "deploying"
+	stat2 := "deployed"
+	if isDel {
+		stat1 = "removing"
+		stat2 = "removed"
+	}
 	compFuncMap := map[string]CompHandler{
 		"ConsulMesh": handleComponentConsulMesh,
 	}
 	for _, comp := range comps {
+		ee := &meshes.EventsResponse{
+			OperationId:   uuid.New().String(),
+			Component:     config.ServerDefaults["type"],
+			ComponentName: config.ServerDefaults["name"],
+		}
 		fnc, ok := compFuncMap[comp.Spec.Type]
 		if !ok {
 			msg, err := handleConsulCoreComponents(h, comp, isDel, "", "", kubeconfigs)
 			if err != nil {
+				ee.Summary = fmt.Sprintf("Error while %s %s", stat1, comp.Spec.Type)
+				h.streamErr(ee.Summary, ee, err)
 				errs = append(errs, err)
 				continue
 			}
-
+			ee.Summary = fmt.Sprintf("%s %s successfully", comp.Spec.Type, stat2)
+			ee.Details = fmt.Sprintf("The %s is now %s.", comp.Spec.Type, stat2)
+			h.StreamInfo(ee)
 			msgs = append(msgs, msg)
 			continue
 		}
 
 		msg, err := fnc(h, comp, isDel, kubeconfigs)
 		if err != nil {
+			ee.Summary = fmt.Sprintf("Error while %s %s", stat1, comp.Spec.Type)
+			h.streamErr(ee.Summary, ee, err)
 			errs = append(errs, err)
 			continue
 		}
-
+		ee.Summary = fmt.Sprintf("%s %s %s successfully", comp.Name, comp.Spec.Type, stat2)
+		ee.Details = fmt.Sprintf("The %s %s is now %s.", comp.Name, comp.Spec.Type, stat2)
+		h.StreamInfo(ee)
 		msgs = append(msgs, msg)
 	}
 	if err := mergeErrors(errs); err != nil {
