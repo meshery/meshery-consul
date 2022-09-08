@@ -47,7 +47,7 @@ jobs:
 
   TestAdapterForServicemeshInstall:
     needs: SetPatternfileForServicemeshInstall
-    uses: Zanda256/meshery/.github/workflows/test_adapters.yaml@Add_adapter_tests_resiliency_logic/#5900 
+    uses: meshery/meshery/.github/workflows/test_adapters.yaml@master
     with: 
       expected_resources: consul-client, consul-server
       expected_resources_types: pod,pod
@@ -204,7 +204,7 @@ jobs:
           pretty=$(jq . data.json)
           rm data.json
 
-          cd ./docs/_compatibility/meshery-istio
+          cd ./docs/_compatibility/meshery-consul
           touch data.json
           echo $pretty > data.json
           cat data.json
