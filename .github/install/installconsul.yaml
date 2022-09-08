@@ -1,0 +1,10 @@
+name: user
+vars:
+  controlplaneNS: consul
+  consulVersion: 1.12.2
+  profile: default
+services:
+  consulservicemesh:
+    type: ConsulMesh
+    namespace:  $(#ref.vars.controlplaneNS)
+    version: $(#ref.vars.consulVersion)
