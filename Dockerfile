@@ -1,4 +1,4 @@
-FROM golang:1.17 as bd
+FROM golang:1.19 as bd
 ARG VERSION
 ARG GIT_COMMITSHA
 WORKDIR /github.com/layer5io/meshery-consul

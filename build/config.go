@@ -29,7 +29,7 @@ var CRDnames []string
 var OverrideURL string
 var AllVersions []Versions
 
-//NewConfig creates the configuration for creating components
+// NewConfig creates the configuration for creating components
 func NewConfig(version string) manifests.Config {
 	return manifests.Config{
 		Name:        smp.ServiceMesh_Type_name[int32(smp.ServiceMesh_CONSUL)],
