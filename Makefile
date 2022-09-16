@@ -19,7 +19,7 @@ include build/Makefile.show-help.mk
 # Environment Setup
 #-----------------------------------------------------------------------------
 BUILDER=buildx-multi-arch
-ADAPTER=istio
+ADAPTER=consul
 
 v ?= 1.17.8 # Default go version to be used
 
