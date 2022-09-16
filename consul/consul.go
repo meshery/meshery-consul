@@ -23,6 +23,7 @@ import (
 	"github.com/layer5io/meshkit/logger"
 	"github.com/layer5io/meshkit/models"
 	"github.com/layer5io/meshkit/models/oam/core/v1alpha1"
+	"github.com/layer5io/meshkit/utils/events"
 	"gopkg.in/yaml.v2"
 )
 
@@ -30,9 +31,9 @@ type Consul struct {
 	adapter.Adapter
 }
 
-func New(config config.Handler, log logger.Handler, kubeConfig config.Handler) adapter.Handler {
+func New(config config.Handler, log logger.Handler, kubeConfig config.Handler, e *events.EventStreamer) adapter.Handler {
 	return &Consul{
-		adapter.Adapter{Config: config, Log: log, KubeconfigHandler: kubeConfig},
+		adapter.Adapter{Config: config, Log: log, KubeconfigHandler: kubeConfig, EventStreamer: e},
 	}
 }
 
@@ -82,12 +83,11 @@ func (h *Consul) CreateKubeconfigs(kubeconfigs []string) error {
 }
 
 // ProcessOAM will handles the grpc invocation for handling OAM objects
-func (h *Consul) ProcessOAM(ctx context.Context, oamReq adapter.OAMRequest, hchan *chan interface{}) (string, error) {
+func (h *Consul) ProcessOAM(ctx context.Context, oamReq adapter.OAMRequest) (string, error) {
 	err := h.CreateKubeconfigs(oamReq.K8sConfigs)
 	if err != nil {
 		return "", err
 	}
-	h.SetChannel(hchan)
 	kubeconfigs := oamReq.K8sConfigs
 	var comps []v1alpha1.Component
 	for _, acomp := range oamReq.OamComps {
