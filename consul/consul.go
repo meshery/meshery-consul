@@ -37,7 +37,7 @@ func New(config config.Handler, log logger.Handler, kubeConfig config.Handler, e
 	}
 }
 
-//CreateKubeconfigs creates and writes passed kubeconfig onto the filesystem
+// CreateKubeconfigs creates and writes passed kubeconfig onto the filesystem
 func (h *Consul) CreateKubeconfigs(kubeconfigs []string) error {
 	var errs = make([]error, 0)
 	for _, kubeconfig := range kubeconfigs {
