@@ -27,12 +27,11 @@ import (
 	mesherykube "github.com/layer5io/meshkit/utils/kubernetes"
 )
 
-func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRequest, hchan *chan interface{}) error {
+func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRequest) error {
 	err := h.CreateKubeconfigs(request.K8sConfigs)
 	if err != nil {
 		return err
 	}
-	h.SetChannel(hchan)
 	kubeconfigs := request.K8sConfigs
 	operations := make(adapter.Operations)
 	err = h.Config.GetObject(adapter.OperationsKey, &operations)
@@ -42,10 +41,10 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 
 	//status := opstatus.Deploying
 	e := &meshes.EventsResponse{
-		OperationId: request.OperationID,
-		Summary:     "Deploying",
-		Details:     "None",
-		Component:   config.ServerDefaults["type"],
+		OperationId:   request.OperationID,
+		Summary:       "Deploying",
+		Details:       "None",
+		Component:     config.ServerDefaults["type"],
 		ComponentName: config.ServerDefaults["name"],
 	}
 
@@ -114,7 +113,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 							APIServerURL: kClient.RestConfig.Host,
 						})
 						if err1 != nil {
-							summary :=  fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc)
+							summary := fmt.Sprintf("Unable to retrieve service endpoint for the service %s.", svc)
 							h.streamErr(summary, e, err1)
 						} else {
 							external := "N/A"
@@ -142,7 +141,7 @@ func (h *Consul) ApplyOperation(ctx context.Context, request adapter.OperationRe
 	return nil
 }
 
-func(h *Consul) streamErr(summary string, e *meshes.EventsResponse, err error) {
+func (h *Consul) streamErr(summary string, e *meshes.EventsResponse, err error) {
 	e.Summary = summary
 	e.Details = err.Error()
 	e.ErrorCode = errors.GetCode(err)
