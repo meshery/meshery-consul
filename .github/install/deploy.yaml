@@ -1,0 +1,6 @@
+name: ConsulMesh
+services:
+  consul:
+    type: ConsulMesh
+    namespace: consul
+    version:  #will be inserted dynamically
