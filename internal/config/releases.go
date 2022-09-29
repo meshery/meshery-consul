@@ -3,7 +3,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	"github.com/layer5io/meshery-adapter-library/adapter"
@@ -40,7 +40,7 @@ func GetLatestReleases(releases uint) ([]*Release, error) {
 		return []*Release{}, ErrGetLatestReleases(fmt.Errorf("unexpected status code: %d", resp.StatusCode))
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return []*Release{}, ErrGetLatestReleases(err)
 	}
