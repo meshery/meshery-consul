@@ -17,16 +17,19 @@ COPY build/ build/
 
 RUN GOPROXY=https://proxy.golang.org,direct CGO_ENABLED=0 GOOS=linux GO111MODULE=on go build -ldflags="-w -s -X main.version=$VERSION -X main.gitsha=$GIT_COMMITSHA" -a -o meshery-consul main.go
 
-# Use distroless as minimal base image to package the manager binary
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
-ENV DISTRO="debian"
+FROM alpine:3.15
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN apk --update add ca-certificates && \
+    mkdir /lib64 && \
+    ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
+
+USER appuser
 ENV SERVICE_ADDR="meshery-consul"
 ENV MESHERY_SERVER="http://meshery:9081"
-WORKDIR $HOME/.meshery
+RUN mkdir -p /home/appuser/.kube
+RUN mkdir -p /home/appuser/.meshery
+WORKDIR /home/appuser
 COPY templates/ ./templates
-COPY --from=builder /build/meshery-consul .
-USER nonroot:nonroot
-
-CMD ["./meshery-consul"]
-
+COPY --from=builder /build/meshery-consul /home/appuser
+COPY consul /home/appuser/consul
+CMD ./meshery-consul
