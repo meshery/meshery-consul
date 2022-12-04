@@ -147,7 +147,7 @@ func registerWorkloads(port string, log logger.Handler) {
 	for _, manifest := range build.CRDnames {
 		log.Info("Registering for ", manifest)
 		if err := adapter.CreateComponents(adapter.StaticCompConfig{
-			URL:             url,
+			URL:             build.GetDefaultURL(manifest, version),
 			Method:          gm,
 			OAMPath:         build.WorkloadPath,
 			MeshModelPath:   build.MeshModelPath,
