@@ -49,8 +49,8 @@ jobs:
     needs: SetPatternfileForServicemeshInstall
     uses: meshery/meshery/.github/workflows/test_adapters.yaml@master
     with: 
-      expected_resources: consul-client, consul-server
-      expected_resources_types: pod,pod
+      expected_resources: consul-connect-injector,consul-server,consul-webhook-cert-manager
+      expected_resources_types: pod,pod,pod
       expected_resources_namespaces: consul, consul
       deployment_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-deployment.yaml
       service_url: https://raw.githubusercontent.com/meshery/meshery/master/install/deployment_yamls/k8s/meshery-consul-service.yaml
