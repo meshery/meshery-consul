@@ -1,7 +1,9 @@
 package build
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -70,6 +72,9 @@ func init() {
 			fmt.Println(err.Error())
 		}
 	}()
+	byt, _ := io.ReadAll(f)
+
+	_ = json.Unmarshal(byt, &meshmodelmetadata)
 	WorkloadPath = filepath.Join(wd, "templates", "oam", "workloads")
 	MeshModelPath = filepath.Join(wd, "templates", "meshmodel", "components")
 	allVersions, _ := utils.GetLatestReleaseTagsSorted("hashicorp", "consul-k8s")
