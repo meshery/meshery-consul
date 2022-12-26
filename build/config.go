@@ -25,9 +25,18 @@ var DefaultGenerationMethod string
 var LatestVersion string
 var LatestAppVersion string
 var WorkloadPath string
+var MeshModelPath string
 var CRDnames []string
 var OverrideURL string
 var AllVersions []Versions
+
+var meshmodelmetadata = make(map[string]interface{})
+
+var MeshModelConfig = adapter.MeshModelConfig{ //Move to build/config.go
+	Category:    "Orchestration & Management",
+	SubCategory: "Service Mesh",
+	Metadata:    meshmodelmetadata,
+}
 
 // NewConfig creates the configuration for creating components
 func NewConfig(version string) manifests.Config {
@@ -54,7 +63,15 @@ func GetDefaultURL(crd string, version string) string {
 }
 func init() {
 	wd, _ := os.Getwd()
+	f, _ := os.Open("./build/meshmodel_metadata.json")
+	defer func() {
+		err := f.Close()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}()
 	WorkloadPath = filepath.Join(wd, "templates", "oam", "workloads")
+	MeshModelPath = filepath.Join(wd, "templates", "meshmodel", "components")
 	allVersions, _ := utils.GetLatestReleaseTagsSorted("hashicorp", "consul-k8s")
 	if len(allVersions) == 0 {
 		return

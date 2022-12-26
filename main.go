@@ -22,6 +22,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-consul/consul/oam"
 	"github.com/layer5io/meshery-consul/internal/config"
@@ -38,6 +39,7 @@ var (
 	serviceName = "consul-adapter"
 	version     = "edge"
 	gitsha      = "none"
+	instanceID  = uuid.NewString()
 )
 
 func main() {
@@ -104,6 +106,11 @@ func registerCapabilities(port string, log logger.Handler) {
 	// if err := oam.RegisterTraits(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
 	// 	log.Error(err)
 	// }
+
+	// Register meshmodel components
+	if err := oam.RegisterMeshModelComponents(instanceID, mesheryServerAddress(), serviceAddress(), port); err != nil {
+		log.Error(err)
+	}
 }
 
 func registerDynamicCapabilities(port string, log logger.Handler) {
@@ -140,11 +147,13 @@ func registerWorkloads(port string, log logger.Handler) {
 	for _, manifest := range build.CRDnames {
 		log.Info("Registering for ", manifest)
 		if err := adapter.CreateComponents(adapter.StaticCompConfig{
-			URL:     build.GetDefaultURL(manifest, build.LatestVersion),
-			Method:  gm,
-			Path:    build.WorkloadPath,
-			DirName: build.LatestAppVersion,
-			Config:  build.NewConfig(build.LatestAppVersion),
+			URL:             build.GetDefaultURL(manifest, version),
+			Method:          gm,
+			OAMPath:         build.WorkloadPath,
+			MeshModelPath:   build.MeshModelPath,
+			MeshModelConfig: build.MeshModelConfig,
+			DirName:         version,
+			Config:          build.NewConfig(version),
 		}); err != nil {
 			log.Error(err)
 			continue
