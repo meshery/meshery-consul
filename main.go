@@ -197,7 +197,7 @@ func serviceAddress() string {
 		return svcAddr
 	}
 
-	return "mesherylocal.layer5.io"
+	return "localhost"
 }
 func isDebug() bool {
 	return os.Getenv("DEBUG") == "true"
