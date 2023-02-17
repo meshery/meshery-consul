@@ -42,6 +42,14 @@ var (
 	instanceID  = uuid.NewString()
 )
 
+func init() {
+	// Create the config path if it doesn't exists as the entire adapter
+	// expects that directory to exists, which may or may not be true
+	if err := os.MkdirAll(path.Join(config.RootPath(), "bin"), 0750); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
 func main() {
 	log, err := logger.New(serviceName, logger.Options{Format: logger.SyslogLogFormat, DebugLevel: isDebug()})
 	if err != nil {
