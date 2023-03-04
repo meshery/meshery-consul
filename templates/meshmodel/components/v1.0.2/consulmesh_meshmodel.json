@@ -1,7 +1,7 @@
 {
     "kind": "ConsulMesh",
     "apiVersion": "core.meshmodel.dev/v1alpha1",
-    "display-name": "Consul Mesh",
+    "displayName": "Consul Mesh",
     "format": "JSON",
     "metadata":
 {
@@ -16,9 +16,9 @@
     {
         "name": "CONSUL",
         "version": "v1.0.2",
-        "display-name": "CONSUL",
+        "displayName": "CONSUL",
         "category": "Orchestration & Management",
-        "sub-category": "Service Mesh"
+        "subCategory": "Service Mesh"
     },
     "schema": "{\"$id\":\"http://meshery.layer5.io/definition/Workload/ConsulMesh\",\"$schema\":\"http://json-schema.org/draft-07/schema\",\"title\":\"Consul Mesh\",\"type\":\"object\",\"properties\":{}}"
 }
