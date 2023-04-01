@@ -16,9 +16,9 @@
     {
         "name": "CONSUL",
         "version": "v1.0.2",
-        "displayName": "CONSUL",
+        "displayName": "Consul",
         "category": {
-			"name": "Orchestration \u0026 Management",
+			"name": "Cloud Native Network",
 			"metadata": null
 		},
         "subCategory": "Service Mesh"

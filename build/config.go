@@ -35,7 +35,7 @@ var AllVersions []Versions
 var meshmodelmetadata = make(map[string]interface{})
 
 var MeshModelConfig = adapter.MeshModelConfig{ //Move to build/config.go
-	Category: "Orchestration & Management",
+	Category: "Cloud Native Network",
 	Metadata: meshmodelmetadata,
 }
 
