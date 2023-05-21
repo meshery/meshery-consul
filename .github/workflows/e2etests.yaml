@@ -47,7 +47,7 @@ jobs:
 
   TestAdapterForServicemeshInstall:
     needs: SetPatternfileForServicemeshInstall
-    uses: meshery/meshery/.github/workflows/test_adapters.yaml@master
+    uses: meshery/meshery/.github/workflows/test_adaptersv2.yaml@master
     with: 
       expected_resources: consul-connect-injector,consul-server,consul-webhook-cert-manager
       expected_resources_types: pod,pod,pod
