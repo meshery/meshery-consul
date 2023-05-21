@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -104,17 +103,7 @@ func main() {
 }
 
 func registerCapabilities(port string, log logger.Handler) {
-	log.Info("Registering static workloads...")
-	// Register workloads
-	if err := oam.RegisterWorkloads(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
-		log.Error(err)
-	}
-
-	// Register traits
-	// if err := oam.RegisterTraits(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
-	// 	log.Error(err)
-	// }
-
+	log.Info("Registering static meshmodel components...")
 	// Register meshmodel components
 	if err := oam.RegisterMeshModelComponents(instanceID, mesheryServerAddress(), serviceAddress(), port); err != nil {
 		log.Error(err)
@@ -157,7 +146,6 @@ func registerWorkloads(port string, log logger.Handler) {
 		if err := adapter.CreateComponents(adapter.StaticCompConfig{
 			URL:             build.GetDefaultURL(manifest, version),
 			Method:          gm,
-			OAMPath:         build.WorkloadPath,
 			MeshModelPath:   build.MeshModelPath,
 			MeshModelConfig: build.MeshModelConfig,
 			DirName:         version,
@@ -174,10 +162,7 @@ func registerWorkloads(port string, log logger.Handler) {
 
 	//Now we will register in case
 	log.Info("Registering workloads with Meshery Server for version ", version)
-	originalPath := oam.WorkloadPath
-	oam.WorkloadPath = filepath.Join(originalPath, version)
-	defer resetWorkloadPath(originalPath)
-	if err := oam.RegisterWorkloads(mesheryServerAddress(), serviceAddress()+":"+port); err != nil {
+	if err := oam.RegisterMeshModelComponents(instanceID, mesheryServerAddress(), serviceAddress(), port); err != nil {
 		log.Info(err.Error())
 		return
 	}
@@ -209,7 +194,4 @@ func serviceAddress() string {
 }
 func isDebug() bool {
 	return os.Getenv("DEBUG") == "true"
-}
-func resetWorkloadPath(orig string) {
-	oam.WorkloadPath = orig
 }
