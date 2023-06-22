@@ -16,14 +16,7 @@ var (
 	MeshmodelComponents = filepath.Join(basePath, "templates", "meshmodel", "components")
 )
 
-type schemaDefinitionPathSet struct {
-	oamDefinitionPath string
-	jsonSchemaPath    string
-	name              string
-}
-
 var AvailableVersions = map[string]bool{}
-var pathSets []schemaDefinitionPathSet
 var availableVersionGlobalMutex sync.Mutex
 
 type meshmodelDefinitionPathSet struct {
