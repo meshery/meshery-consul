@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-consul/internal/config"
 
 	"github.com/layer5io/meshkit/utils"
@@ -32,11 +31,6 @@ var OverrideURL string
 var AllVersions []Versions
 
 var meshmodelmetadata = make(map[string]interface{})
-
-var MeshModelConfig = adapter.MeshModelConfig{ //Move to build/config.go
-	Category: "Cloud Native Network",
-	Metadata: meshmodelmetadata,
-}
 
 // NewConfig creates the configuration for creating components
 func NewConfig(version string) manifests.Config {
@@ -98,5 +92,4 @@ func init() {
 	CRDnames, _ = config.GetFileNames("hashicorp", "consul-k8s", "control-plane/config/crd/bases/")
 	LatestAppVersion = AllVersions[len(AllVersions)-1].AppVersion
 	LatestVersion = AllVersions[len(AllVersions)-1].ChartVersion
-	DefaultGenerationMethod = adapter.Manifests
 }

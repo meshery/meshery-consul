@@ -53,6 +53,7 @@ linters:
     - testpackage
 
 run:
+  timeout: 5m
   enable-cache: true
   skip-dirs:
     - vendor
