@@ -8,7 +8,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/layer5io/meshery-adapter-library v1.1.0
 	github.com/layer5io/meshkit v0.6.79
-	github.com/layer5io/service-mesh-performance v0.3.4
+	github.com/layer5io/service-mesh-performance v0.6.1
 	gopkg.in/yaml.v2 v2.4.0
 )
 
