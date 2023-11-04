@@ -15,14 +15,10 @@
 package consul
 
 import (
-	"context"
-
 	"github.com/layer5io/meshery-adapter-library/adapter"
 	"github.com/layer5io/meshery-adapter-library/config"
-	"github.com/layer5io/meshery-consul/consul/oam"
 	"github.com/layer5io/meshkit/logger"
 	"github.com/layer5io/meshkit/models"
-	"github.com/layer5io/meshkit/models/oam/core/v1alpha1"
 	"github.com/layer5io/meshkit/utils/events"
 	"gopkg.in/yaml.v2"
 )
@@ -80,57 +76,4 @@ func (h *Consul) CreateKubeconfigs(kubeconfigs []string) error {
 		return nil
 	}
 	return mergeErrors(errs)
-}
-
-// ProcessOAM will handles the grpc invocation for handling OAM objects
-func (h *Consul) ProcessOAM(ctx context.Context, oamReq adapter.OAMRequest) (string, error) {
-	err := h.CreateKubeconfigs(oamReq.K8sConfigs)
-	if err != nil {
-		return "", err
-	}
-	kubeconfigs := oamReq.K8sConfigs
-	var comps []v1alpha1.Component
-	for _, acomp := range oamReq.OamComps {
-		comp, err := oam.ParseApplicationComponent(acomp)
-		if err != nil {
-			h.Log.Error(ErrParseOAMComponent)
-			continue
-		}
-
-		comps = append(comps, comp)
-	}
-
-	config, err := oam.ParseApplicationConfiguration(oamReq.OamConfig)
-	if err != nil {
-		h.Log.Error(ErrParseOAMConfig)
-	}
-	// If operation is delete then first HandleConfiguration and then handle the deployment
-	if oamReq.DeleteOp {
-		// Process configuration
-		msg2, err := h.HandleApplicationConfiguration(config, oamReq.DeleteOp, kubeconfigs)
-		if err != nil {
-			return msg2, ErrProcessOAM(err)
-		}
-
-		// Process components
-		msg1, err := h.HandleComponents(comps, oamReq.DeleteOp, kubeconfigs)
-		if err != nil {
-			return msg1 + "\n" + msg2, ErrProcessOAM(err)
-		}
-
-		return msg1 + "\n" + msg2, nil
-	}
-	// Process components
-	msg1, err := h.HandleComponents(comps, oamReq.DeleteOp, kubeconfigs)
-	if err != nil {
-		return msg1, ErrProcessOAM(err)
-	}
-
-	// Process configuration
-	msg2, err := h.HandleApplicationConfiguration(config, oamReq.DeleteOp, kubeconfigs)
-	if err != nil {
-		return msg1 + "\n" + msg2, ErrProcessOAM(err)
-	}
-
-	return msg1 + "\n" + msg2, nil
 }
