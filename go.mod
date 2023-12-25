@@ -7,7 +7,7 @@ replace github.com/kudobuilder/kuttl => github.com/layer5io/kuttl v0.4.1-0.20200
 require (
 	github.com/google/uuid v1.3.1
 	github.com/layer5io/meshery-adapter-library v1.1.0
-	github.com/layer5io/meshkit v0.6.79
+	github.com/layer5io/meshkit v0.7.2
 	github.com/layer5io/service-mesh-performance v0.3.4
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -172,7 +172,7 @@ require (
 	gorm.io/driver/postgres v1.5.3 // indirect
 	gorm.io/driver/sqlite v1.5.4 // indirect
 	gorm.io/gorm v1.25.5 // indirect
-	helm.sh/helm/v3 v3.13.1 // indirect
+	helm.sh/helm/v3 v3.13.2 // indirect
 	k8s.io/api v0.28.3 // indirect
 	k8s.io/apiextensions-apiserver v0.28.2 // indirect
 	k8s.io/apimachinery v0.28.3 // indirect
