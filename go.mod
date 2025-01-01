@@ -5,7 +5,7 @@ go 1.23
 replace github.com/kudobuilder/kuttl => github.com/layer5io/kuttl v0.4.1-0.20200723152044-916f10574334
 
 require (
-	github.com/google/uuid v1.4.0
+	github.com/google/uuid v1.6.0
 	github.com/layer5io/meshery-adapter-library v1.1.0
 	github.com/layer5io/meshkit v0.7.11
 	github.com/layer5io/service-mesh-performance v0.3.4
