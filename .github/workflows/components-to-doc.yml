@@ -10,7 +10,7 @@ jobs:
   CopyComponents:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@master
 
       - name: Make components to .md files
         run: |
@@ -50,7 +50,7 @@ jobs:
             done
 
       - name: Pushes folder to main repo
-        uses: crykn/copy_folder_to_another_repo_action@v1.0.6
+        uses: crykn/copy_folder_to_another_repo_action@master.0.6
         env:
           API_TOKEN_GITHUB: ${{ secrets.GH_ACCESS_TOKEN }}
         with:

@@ -9,14 +9,14 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@master
         with:
           go-version: 1.23.x
           cache: true
           cache-dependency-path: go.sum
       - uses: actions/checkout@master
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@master
         with:
           version: latest
       - name: Run golangci-lint
@@ -27,7 +27,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@master
         with:
           go-version: 1.23.x
           cache: true
@@ -45,7 +45,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@master
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@master
         with:
           go-version: 1.23.x
           cache: true
@@ -54,7 +54,7 @@ jobs:
         run: go test --short ./... -race -coverprofile=coverage.txt -covermode=atomic
       - name: Upload coverage to Codecov
         if: github.repository == 'meshery/meshery-consul'
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v2.1.0
         with:
           files: ./coverage.txt
           flags: unittests
@@ -68,7 +68,7 @@ jobs:
       with:
         fetch-depth: 1
     - name: Setup Go
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@master
       with:
         go-version: 1.23.x
         cache: true
